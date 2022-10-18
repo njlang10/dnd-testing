@@ -138,17 +138,19 @@ function OrientableContainer({
     >
       {itemData.map((item, currentIdx) => {
         return (
-          <React.Fragment key={`wrapper-${currentIdx} - ${containerIdx}`}>
+          <React.Fragment
+            key={`wrapper-${currentIdx}-${containerIdx}-${item.id}`}
+          >
             {/* Left based dropcontainer */}
             <InnerDropContainer
-              key={`drop-${currentIdx}-${containerIdx}`}
+              key={`drop-${currentIdx}-${containerIdx}-${item.id}`}
               currentIdx={currentIdx}
               orientation={orientation}
               onDrop={onItemDrop}
               containerIdx={containerIdx}
             />
             <BlockItem
-              key={`item-${item.id}-${containerIdx}`}
+              key={`item-${currentIdx}-${containerIdx}-${item.id}`}
               id={item.id}
               text={item.text}
               currentIdx={currentIdx}
@@ -159,7 +161,7 @@ function OrientableContainer({
       })}
       {/* End of row drop container */}
       <InnerDropContainer
-        key={`drop-${itemData?.length}-end-${containerIdx}`}
+        key={`drop-${itemData?.length}-${containerIdx}-endId`}
         currentIdx={itemData?.length}
         containerIdx={containerIdx}
         orientation={orientation}
@@ -191,6 +193,7 @@ function App() {
         {blockitems.map((singleRow, rowIdx) => {
           return (
             <OrientableContainer
+              key={rowIdx}
               orientation="HORIZONTAL"
               itemData={singleRow}
               containerIdx={rowIdx}
