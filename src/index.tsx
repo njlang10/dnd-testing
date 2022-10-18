@@ -140,8 +140,8 @@ function OrientableContainer({
           justifyContent: "center",
           alignItems: "center",
           flexDirection: orientation === "HORIZONTAL" ? "row" : "column",
-          width: orientation === "HORIZONTAL" ? "100%" : "15%",
-          height: orientation === "VERTICAL" ? "100%" : "15px",
+          width: orientation === "HORIZONTAL" ? "100%" : "15px",
+          height: orientation === "VERTICAL" ? "100%" : "30px",
           border: "1px solid #0971F1",
         }}
       >
@@ -232,9 +232,9 @@ function OrientableContainer({
 function App() {
   const [blockitems, setItems] = useState<ItemData[][]>(() => [
     [
-      { id: 0, text: "Hello", containerIdx: 0, currentIdx: 0 },
-      { id: 1, text: "GoodBye", containerIdx: 0, currentIdx: 1 },
-      { id: 2, text: "Again", containerIdx: 0, currentIdx: 2 },
+      { id: 0, text: "Very", containerIdx: 0, currentIdx: 0 },
+      { id: 1, text: "Particular", containerIdx: 0, currentIdx: 1 },
+      { id: 2, text: "Set of skills", containerIdx: 0, currentIdx: 2 },
     ],
     [
       { id: 3, text: "New", containerIdx: 0, currentIdx: 0 },
