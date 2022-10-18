@@ -240,7 +240,6 @@ function App() {
     rowIdx: number
   ) => {
     const newCopy = [...blockitems];
-    const containerComingFrom = item.containerIdx;
     const itemFromDiffRow = item?.containerIdx !== containerIdx;
     const itemDroppedInDummyContainer = containerIdx.toString().endsWith(".5");
 
