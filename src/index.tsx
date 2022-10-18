@@ -22,7 +22,7 @@ function InnerDropContainer({
   currentIdx: number;
   containerIdx: number;
   orientation: ContainerOrientation;
-  fullWidth: boolean;
+  fullWidth?: boolean;
   onDrop: (
     item: ItemData,
     newRowIndex: number,
@@ -121,11 +121,13 @@ function OrientableContainer({
   orientation,
   itemData,
   containerIdx,
+  isEndContainer = false,
   onItemDrop,
 }: {
   orientation: ContainerOrientation;
   itemData: ItemData[];
   containerIdx: number;
+  isEndContainer?: boolean;
   onItemDrop: (item: ItemData, idx: number, containerIdx: number) => void;
   // children: React.ReactNode;
 }): JSX.Element {
@@ -140,7 +142,7 @@ function OrientableContainer({
           flexDirection: orientation === "HORIZONTAL" ? "row" : "column",
           width: orientation === "HORIZONTAL" ? "100%" : "15%",
           height: orientation === "VERTICAL" ? "100%" : "15px",
-          border: "3px solid #0971F1",
+          border: "1px solid #0971F1",
         }}
       >
         <InnerDropContainer
@@ -167,6 +169,7 @@ function OrientableContainer({
         key={containerIdx - 0.5}
         orientation={orientation}
         itemData={[]}
+        isEndContainer={false}
         containerIdx={containerIdx - 0.5}
         onItemDrop={onItemDrop}
       />
@@ -176,8 +179,6 @@ function OrientableContainer({
           justifyContent: "center",
           alignItems: "center",
           flexDirection: orientation === "HORIZONTAL" ? "row" : "column",
-          width: orientation === "HORIZONTAL" ? "100%" : "15%",
-          height: orientation === "VERTICAL" ? "100%" : "30px",
           border: "1px solid #0971F1",
         }}
       >
@@ -215,6 +216,15 @@ function OrientableContainer({
           fullWidth={false}
         />
       </div>
+      {isEndContainer && (
+        <OrientableContainer
+          key={containerIdx + 0.5}
+          orientation={orientation}
+          itemData={[]}
+          containerIdx={containerIdx + 0.5}
+          onItemDrop={onItemDrop}
+        />
+      )}
     </div>
   );
 }
@@ -353,6 +363,7 @@ function App() {
               orientation="HORIZONTAL"
               itemData={singleRow}
               containerIdx={rowIdx}
+              isEndContainer={rowIdx === blockitems.length - 1}
               onItemDrop={(item: ItemData, idx: number, containerIdx: number) =>
                 onItemDrop(item, idx, containerIdx, rowIdx)
               }
