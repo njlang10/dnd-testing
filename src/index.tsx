@@ -250,8 +250,9 @@ function App() {
       rowCopy.splice(item.currentIdx, 1);
     }
 
-    // Item was moved to a conatiner that doesn't exist
+    // Item was moved to a placeholder container
     if (itemDroppedInDummyContainer) {
+      // True up to a real index
       const newContainerIdx = containerIdx + 0.5;
 
       newCopy.splice(newContainerIdx, 0, [
