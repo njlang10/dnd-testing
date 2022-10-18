@@ -203,7 +203,6 @@ function App() {
                 const itemFromDiffRow = item?.containerIdx !== containerIdx;
                 // Dropped item is from a different row. Remove from old and add to new
                 if (itemFromDiffRow) {
-                  console.log("diff containers");
                   // Remove from old container
                   const rowCopy = newCopy[item.containerIdx];
                   rowCopy.splice(item.currentIdx, 1);
@@ -215,31 +214,24 @@ function App() {
                     containerIdx: containerIdx,
                     currentIdx: idx,
                   };
-                  console.log("splicing new item", newItem);
                   newContainer.splice(idx, 0, newItem);
-                  console.log("newcontainer now", newContainer);
 
+                  // Update indices
                   for (let i = idx + 1; i < newContainer?.length; i++) {
                     const nextItem = newContainer[i];
                     nextItem["containerIdx"] = containerIdx;
                     nextItem["currentIdx"] = i;
                   }
 
+                  // Set UI state
                   setItems(newCopy);
                   return;
                 }
 
-                // We're moving in the same row
+                // We're moving in the same row, find where it exists now
                 const rowCopy = newCopy[containerIdx];
-                console.log("Current row looks like", rowCopy);
                 const currentIdx = rowCopy.findIndex(
                   (singleItem) => item.id === singleItem.id
-                );
-                console.log(
-                  "found the current idx of",
-                  currentIdx,
-                  "while looking for ",
-                  item.text
                 );
 
                 // No-op, we moved in the same spot
@@ -259,7 +251,7 @@ function App() {
                   return;
                 }
 
-                // // Place at back
+                // Place at back
                 if (idx === blockitems?.length) {
                   copy.splice(blockitems?.length - 1, 0, {
                     ...item,
@@ -271,7 +263,7 @@ function App() {
                   return;
                 }
 
-                // // Place in between
+                // Place in between
                 console.log("placing in between");
                 copy.splice(currentIdx > idx ? idx : idx - 1, 0, {
                   ...item,
@@ -279,6 +271,8 @@ function App() {
                   currentIdx: idx,
                 });
                 newCopy[rowIdx] = copy;
+
+                // Set UI state
                 setItems(newCopy);
               }}
             />
