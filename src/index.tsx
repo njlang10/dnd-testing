@@ -16,11 +16,13 @@ function InnerDropContainer({
   currentIdx,
   containerIdx,
   orientation,
+  fullWidth = false,
   onDrop,
 }: {
   currentIdx: number;
   containerIdx: number;
   orientation: ContainerOrientation;
+  fullWidth: boolean;
   onDrop: (
     item: ItemData,
     newRowIndex: number,
@@ -48,12 +50,15 @@ function InnerDropContainer({
     [onDrop, currentIdx, containerIdx] // NOTE: This is important! If you don't add your deps, any state setting will be STALE
   );
 
+  const width = fullWidth || orientation === "VERTICAL" ? "100%" : "20px";
+  const height = fullWidth || orientation === "HORIZONTAL" ? "100%" : "20px";
+
   return (
     <div
       ref={drop}
       style={{
-        width: orientation === "HORIZONTAL" ? "20px" : "100%",
-        height: orientation === "VERTICAL" ? "20px" : "100%",
+        width: width,
+        height: height,
         backgroundColor: "pink",
         opacity: collectedProps.isOver ? "50%" : "100%",
       }}
@@ -124,49 +129,92 @@ function OrientableContainer({
   onItemDrop: (item: ItemData, idx: number, containerIdx: number) => void;
   // children: React.ReactNode;
 }): JSX.Element {
+  // Empty container
+  if (itemData?.length === 0) {
+    return (
+      <div
+        style={{
+          display: "flex",
+          justifyContent: "center",
+          alignItems: "center",
+          flexDirection: orientation === "HORIZONTAL" ? "row" : "column",
+          width: orientation === "HORIZONTAL" ? "100%" : "15%",
+          height: orientation === "VERTICAL" ? "100%" : "15px",
+          border: "3px solid #0971F1",
+        }}
+      >
+        <InnerDropContainer
+          key={`drop-${0}-${containerIdx}-none`}
+          currentIdx={0}
+          orientation={orientation}
+          onDrop={onItemDrop}
+          containerIdx={containerIdx}
+          fullWidth={true}
+        />
+      </div>
+    );
+  }
   return (
     <div
       style={{
         display: "flex",
-        justifyContent: "center",
-        alignItems: "center",
-        flexDirection: orientation === "HORIZONTAL" ? "row" : "column",
+        flexDirection: orientation === "HORIZONTAL" ? "column" : "row",
         width: orientation === "HORIZONTAL" ? "100%" : "15%",
         height: orientation === "VERTICAL" ? "100%" : "30px",
-        border: "3px solid #0971F1",
       }}
     >
-      {itemData.map((item, currentIdx) => {
-        return (
-          <React.Fragment
-            key={`wrapper-${currentIdx}-${containerIdx}-${item.id}`}
-          >
-            {/* Left based dropcontainer */}
-            <InnerDropContainer
-              key={`drop-${currentIdx}-${containerIdx}-${item.id}`}
-              currentIdx={currentIdx}
-              orientation={orientation}
-              onDrop={onItemDrop}
-              containerIdx={containerIdx}
-            />
-            <BlockItem
-              key={`item-${currentIdx}-${containerIdx}-${item.id}`}
-              id={item.id}
-              text={item.text}
-              currentIdx={currentIdx}
-              containerIdx={containerIdx}
-            />
-          </React.Fragment>
-        );
-      })}
-      {/* End of row drop container */}
-      <InnerDropContainer
-        key={`drop-${itemData?.length}-${containerIdx}-endId`}
-        currentIdx={itemData?.length}
-        containerIdx={containerIdx}
+      <OrientableContainer
+        key={containerIdx - 0.5}
         orientation={orientation}
-        onDrop={onItemDrop}
+        itemData={[]}
+        containerIdx={containerIdx - 0.5}
+        onItemDrop={onItemDrop}
       />
+      <div
+        style={{
+          display: "flex",
+          justifyContent: "center",
+          alignItems: "center",
+          flexDirection: orientation === "HORIZONTAL" ? "row" : "column",
+          width: orientation === "HORIZONTAL" ? "100%" : "15%",
+          height: orientation === "VERTICAL" ? "100%" : "30px",
+          border: "1px solid #0971F1",
+        }}
+      >
+        {itemData.map((item, currentIdx) => {
+          return (
+            <React.Fragment
+              key={`wrapper-${currentIdx}-${containerIdx}-${item.id}`}
+            >
+              {/* Left based dropcontainer */}
+              <InnerDropContainer
+                key={`drop-${currentIdx}-${containerIdx}-${item.id}`}
+                currentIdx={currentIdx}
+                orientation={orientation}
+                onDrop={onItemDrop}
+                containerIdx={containerIdx}
+                fullWidth={false}
+              />
+              <BlockItem
+                key={`item-${currentIdx}-${containerIdx}-${item.id}`}
+                id={item.id}
+                text={item.text}
+                currentIdx={currentIdx}
+                containerIdx={containerIdx}
+              />
+            </React.Fragment>
+          );
+        })}
+        {/* End of row drop container */}
+        <InnerDropContainer
+          key={`drop-${itemData?.length}-${containerIdx}-endId`}
+          currentIdx={itemData?.length}
+          containerIdx={containerIdx}
+          orientation={orientation}
+          onDrop={onItemDrop}
+          fullWidth={false}
+        />
+      </div>
     </div>
   );
 }
@@ -185,8 +233,118 @@ function App() {
     ],
   ]);
 
+  const onItemDrop = (
+    item: ItemData,
+    idx: number,
+    containerIdx: number,
+    rowIdx: number
+  ) => {
+    const newCopy = [...blockitems];
+    const containerComingFrom = item.containerIdx;
+    const itemFromDiffRow = item?.containerIdx !== containerIdx;
+    const itemDroppedInDummyContainer = containerIdx.toString().endsWith(".5");
+
+    if (itemFromDiffRow) {
+      // Remove from old container
+      const rowCopy = newCopy[item.containerIdx];
+      rowCopy.splice(item.currentIdx, 1);
+    }
+
+    // Item was moved to a conatiner that doesn't exist
+    if (itemDroppedInDummyContainer) {
+      const newContainerIdx = containerIdx + 0.5;
+
+      newCopy.splice(newContainerIdx, 0, [
+        { ...item, containerIdx: newContainerIdx, currentIdx: 0 },
+      ]);
+
+      // Remove empty containers
+      const filteredCopy = newCopy.filter(
+        (singleContainer) => singleContainer?.length > 0
+      );
+      setItems(filteredCopy);
+      return;
+    }
+
+    // Dropped item is from a different row. Remove from old and add to new
+    if (itemFromDiffRow) {
+      // Remove from old container
+      const rowCopy = newCopy[item.containerIdx];
+      rowCopy.splice(item.currentIdx, 1);
+
+      // Place in new container
+      const newContainer = newCopy[containerIdx];
+      const newItem = {
+        ...item,
+        containerIdx: containerIdx,
+        currentIdx: idx,
+      };
+      newContainer.splice(idx, 0, newItem);
+
+      // Update indices
+      for (let i = idx + 1; i < newContainer?.length; i++) {
+        const nextItem = newContainer[i];
+        nextItem["containerIdx"] = containerIdx;
+        nextItem["currentIdx"] = i;
+      }
+
+      // Remove empty containers
+      const filteredCopy = newCopy.filter(
+        (singleContainer) => singleContainer?.length > 0
+      );
+
+      // Set UI state
+      setItems(filteredCopy);
+      return;
+    }
+
+    // We're moving in the same row, find where it exists now
+    const rowCopy = newCopy[containerIdx];
+    const currentIdx = rowCopy.findIndex(
+      (singleItem) => item.id === singleItem.id
+    );
+
+    // No-op, we moved in the same spot
+    if (idx === currentIdx || idx === currentIdx + 1) {
+      return;
+    }
+
+    const copy = rowCopy.filter((filtered) => filtered.id !== item.id);
+
+    // Place in front
+    if (idx === 0) {
+      copy.splice(0, 0, { ...item, containerIdx, currentIdx: idx });
+      newCopy[containerIdx] = copy;
+      setItems(newCopy);
+      return;
+    }
+
+    // Place at back
+    if (idx === blockitems?.length) {
+      copy.splice(blockitems?.length - 1, 0, {
+        ...item,
+        containerIdx,
+        currentIdx: idx,
+      });
+      newCopy[rowIdx] = copy;
+      setItems(newCopy);
+      return;
+    }
+
+    // Place in between
+    console.log("placing in between");
+    copy.splice(currentIdx > idx ? idx : idx - 1, 0, {
+      ...item,
+      containerIdx,
+      currentIdx: idx,
+    });
+    newCopy[rowIdx] = copy;
+
+    // Set UI state
+    setItems(newCopy);
+  };
+
   console.log("items are ", blockitems);
-  
 
   return (
     <div className="App">
@@ -198,87 +356,9 @@ function App() {
               orientation="HORIZONTAL"
               itemData={singleRow}
               containerIdx={rowIdx}
-              onItemDrop={(
-                item: ItemData,
-                idx: number,
-                containerIdx: number
-              ) => {
-                const newCopy = [...blockitems];
-                const itemFromDiffRow = item?.containerIdx !== containerIdx;
-                // Dropped item is from a different row. Remove from old and add to new
-                if (itemFromDiffRow) {
-                  // Remove from old container
-                  const rowCopy = newCopy[item.containerIdx];
-                  rowCopy.splice(item.currentIdx, 1);
-
-                  // Place in new container
-                  const newContainer = newCopy[containerIdx];
-                  const newItem = {
-                    ...item,
-                    containerIdx: containerIdx,
-                    currentIdx: idx,
-                  };
-                  newContainer.splice(idx, 0, newItem);
-
-                  // Update indices
-                  for (let i = idx + 1; i < newContainer?.length; i++) {
-                    const nextItem = newContainer[i];
-                    nextItem["containerIdx"] = containerIdx;
-                    nextItem["currentIdx"] = i;
-                  }
-
-                  // Set UI state
-                  setItems(newCopy);
-                  return;
-                }
-
-                // We're moving in the same row, find where it exists now
-                const rowCopy = newCopy[containerIdx];
-                const currentIdx = rowCopy.findIndex(
-                  (singleItem) => item.id === singleItem.id
-                );
-
-                // No-op, we moved in the same spot
-                if (idx === currentIdx || idx === currentIdx + 1) {
-                  return;
-                }
-
-                const copy = rowCopy.filter(
-                  (filtered) => filtered.id !== item.id
-                );
-
-                // Place in front
-                if (idx === 0) {
-                  copy.splice(0, 0, { ...item, containerIdx, currentIdx: idx });
-                  newCopy[containerIdx] = copy;
-                  setItems(newCopy);
-                  return;
-                }
-
-                // Place at back
-                if (idx === blockitems?.length) {
-                  copy.splice(blockitems?.length - 1, 0, {
-                    ...item,
-                    containerIdx,
-                    currentIdx: idx,
-                  });
-                  newCopy[rowIdx] = copy;
-                  setItems(newCopy);
-                  return;
-                }
-
-                // Place in between
-                console.log("placing in between");
-                copy.splice(currentIdx > idx ? idx : idx - 1, 0, {
-                  ...item,
-                  containerIdx,
-                  currentIdx: idx,
-                });
-                newCopy[rowIdx] = copy;
-
-                // Set UI state
-                setItems(newCopy);
-              }}
+              onItemDrop={(item: ItemData, idx: number, containerIdx: number) =>
+                onItemDrop(item, idx, containerIdx, rowIdx)
+              }
             />
           );
         })}
