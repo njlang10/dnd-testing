@@ -268,10 +268,6 @@ function App() {
 
     // Dropped item is from a different row. Remove from old and add to new
     if (itemFromDiffRow) {
-      // Remove from old container
-      const rowCopy = newCopy[item.containerIdx];
-      rowCopy.splice(item.currentIdx, 1);
-
       // Place in new container
       const newContainer = newCopy[containerIdx];
       const newItem = {
@@ -280,6 +276,7 @@ function App() {
         currentIdx: idx,
       };
       newContainer.splice(idx, 0, newItem);
+      console.log("Containers after splice in");
 
       // Update indices
       for (let i = idx + 1; i < newContainer?.length; i++) {
