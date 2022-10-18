@@ -16,7 +16,7 @@ function InnerDropContainer({
   currentIdx,
   containerIdx,
   orientation,
-  onDrop
+  onDrop,
 }: {
   currentIdx: number;
   containerIdx: number;
@@ -43,7 +43,7 @@ function InnerDropContainer({
       },
       collect: (monitor) => {
         return { isOver: !!monitor.isOver() };
-      }
+      },
     }),
     [onDrop, currentIdx, containerIdx] // NOTE: This is important! If you don't add your deps, any state setting will be STALE
   );
@@ -55,7 +55,7 @@ function InnerDropContainer({
         width: orientation === "HORIZONTAL" ? "20px" : "100%",
         height: orientation === "VERTICAL" ? "20px" : "100%",
         backgroundColor: "pink",
-        opacity: collectedProps.isOver ? "50%" : "100%"
+        opacity: collectedProps.isOver ? "50%" : "100%",
       }}
     ></div>
   );
@@ -68,7 +68,7 @@ function BlockItem({
   id,
   text,
   currentIdx,
-  containerIdx
+  containerIdx,
 }: {
   id: number;
   text: string;
@@ -82,13 +82,13 @@ function BlockItem({
         id: id,
         text: text,
         containerIdx: containerIdx,
-        currentIdx: currentIdx
+        currentIdx: currentIdx,
       },
       collect: (monitor) => {
         return {
-          isDragging: !!monitor.isDragging()
+          isDragging: !!monitor.isDragging(),
         };
-      }
+      },
     }),
     [currentIdx, containerIdx]
   );
@@ -101,7 +101,7 @@ function BlockItem({
         height: "100%",
         border: "1px dashed gray",
         textAlign: "center",
-        backgroundColor: props.isDragging ? "green" : "white"
+        backgroundColor: props.isDragging ? "green" : "white",
       }}
     >
       {text}
@@ -116,7 +116,7 @@ function OrientableContainer({
   orientation,
   itemData,
   containerIdx,
-  onItemDrop
+  onItemDrop,
 }: {
   orientation: ContainerOrientation;
   itemData: ItemData[];
@@ -133,7 +133,7 @@ function OrientableContainer({
         flexDirection: orientation === "HORIZONTAL" ? "row" : "column",
         width: orientation === "HORIZONTAL" ? "100%" : "15%",
         height: orientation === "VERTICAL" ? "100%" : "30px",
-        border: "3px solid #0971F1"
+        border: "3px solid #0971F1",
       }}
     >
       {itemData.map((item, currentIdx) => {
@@ -174,13 +174,13 @@ function App() {
     [
       { id: 0, text: "Hello", containerIdx: 0, currentIdx: 0 },
       { id: 1, text: "GoodBye", containerIdx: 0, currentIdx: 1 },
-      { id: 2, text: "Again", containerIdx: 0, currentIdx: 2 }
+      { id: 2, text: "Again", containerIdx: 0, currentIdx: 2 },
     ],
     [
       { id: 0, text: "New", containerIdx: 0, currentIdx: 0 },
       { id: 1, text: "Phone", containerIdx: 0, currentIdx: 1 },
-      { id: 2, text: "Who Dis?", containerIdx: 0, currentIdx: 2 }
-    ]
+      { id: 2, text: "Who Dis?", containerIdx: 0, currentIdx: 2 },
+    ],
   ]);
 
   console.log("items are ", blockitems);
@@ -199,10 +199,9 @@ function App() {
                 idx: number,
                 containerIdx: number
               ) => {
-                // Dropped item is from a different row
                 const newCopy = [...blockitems];
                 const itemFromDiffRow = item?.containerIdx !== containerIdx;
-
+                // Dropped item is from a different row. Remove from old and add to new
                 if (itemFromDiffRow) {
                   console.log("diff containers");
                   // Remove from old container
@@ -214,7 +213,7 @@ function App() {
                   newContainer.splice(idx, 0, {
                     ...item,
                     containerIdx: containerIdx,
-                    currentIdx: idx
+                    currentIdx: idx,
                   });
                   setItems(newCopy);
                   return;
