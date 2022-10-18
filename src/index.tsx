@@ -90,7 +90,7 @@ function BlockItem({
         };
       },
     }),
-    [currentIdx, containerIdx]
+    [id, text, currentIdx, containerIdx]
   );
 
   return (
@@ -177,9 +177,9 @@ function App() {
       { id: 2, text: "Again", containerIdx: 0, currentIdx: 2 },
     ],
     [
-      { id: 0, text: "New", containerIdx: 0, currentIdx: 0 },
-      { id: 1, text: "Phone", containerIdx: 0, currentIdx: 1 },
-      { id: 2, text: "Who Dis?", containerIdx: 0, currentIdx: 2 },
+      { id: 3, text: "New", containerIdx: 0, currentIdx: 0 },
+      { id: 4, text: "Phone", containerIdx: 0, currentIdx: 1 },
+      { id: 5, text: "Who Dis?", containerIdx: 0, currentIdx: 2 },
     ],
   ]);
 
@@ -210,17 +210,36 @@ function App() {
 
                   // Place in new container
                   const newContainer = newCopy[containerIdx];
-                  newContainer.splice(idx, 0, {
+                  const newItem = {
                     ...item,
                     containerIdx: containerIdx,
                     currentIdx: idx,
-                  });
+                  };
+                  console.log("splicing new item", newItem);
+                  newContainer.splice(idx, 0, newItem);
+                  console.log("newcontainer now", newContainer);
+
+                  for (let i = idx + 1; i < newContainer?.length; i++) {
+                    const nextItem = newContainer[i];
+                    nextItem["containerIdx"] = containerIdx;
+                    nextItem["currentIdx"] = i;
+                  }
+
                   setItems(newCopy);
                   return;
                 }
 
-                const currentIdx = singleRow.findIndex(
+                // We're moving in the same row
+                const rowCopy = newCopy[containerIdx];
+                console.log("Current row looks like", rowCopy);
+                const currentIdx = rowCopy.findIndex(
                   (singleItem) => item.id === singleItem.id
+                );
+                console.log(
+                  "found the current idx of",
+                  currentIdx,
+                  "while looking for ",
+                  item.text
                 );
 
                 // No-op, we moved in the same spot
@@ -228,70 +247,43 @@ function App() {
                   return;
                 }
 
-                const copy = singleRow.filter(
+                const copy = rowCopy.filter(
                   (filtered) => filtered.id !== item.id
                 );
 
                 // Place in front
                 if (idx === 0) {
-                  copy.splice(0, 0, item);
-                  newCopy[rowIdx] = copy;
+                  copy.splice(0, 0, { ...item, containerIdx, currentIdx: idx });
+                  newCopy[containerIdx] = copy;
                   setItems(newCopy);
                   return;
                 }
 
                 // // Place at back
                 if (idx === blockitems?.length) {
-                  copy.splice(blockitems?.length - 1, 0, item);
+                  copy.splice(blockitems?.length - 1, 0, {
+                    ...item,
+                    containerIdx,
+                    currentIdx: idx,
+                  });
                   newCopy[rowIdx] = copy;
                   setItems(newCopy);
                   return;
                 }
 
                 // // Place in between
-                copy.splice(currentIdx > idx ? idx : idx - 1, 0, item);
+                console.log("placing in between");
+                copy.splice(currentIdx > idx ? idx : idx - 1, 0, {
+                  ...item,
+                  containerIdx,
+                  currentIdx: idx,
+                });
                 newCopy[rowIdx] = copy;
                 setItems(newCopy);
               }}
             />
           );
         })}
-        {/* <OrientableContainer
-          orientation="HORIZONTAL"
-          itemData={blockitems[0]}
-          onItemDrop={(item: ItemData, idx: number) => {
-            const currentIdx = blockitems.findIndex(
-              (singleItem) => item.id === singleItem.id
-            );
-
-            // No-op, we moved in the same spot
-            if (idx === currentIdx || idx === currentIdx + 1) {
-              return;
-            }
-
-            const copy = blockitems.filter(
-              (filtered) => filtered.id !== item.id
-            );
-
-            // Place in front
-            if (idx === 0) {
-              copy.splice(0, 0, item);
-              setItems(copy);
-              return;
-            }
-
-            // // Place at back
-            if (idx === blockitems?.length) {
-              copy.splice(blockitems?.length - 1, 0, item);
-              setItems(copy);
-              return;
-            }
-
-            // // Place in between
-            copy.splice(currentIdx > idx ? idx : idx - 1, 0, item);
-            setItems(copy);
-          }}
-        /> */}
       </DndProvider>
     </div>
   );
