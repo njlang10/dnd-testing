@@ -186,6 +186,7 @@ function App() {
   ]);
 
   console.log("items are ", blockitems);
+  
 
   return (
     <div className="App">
