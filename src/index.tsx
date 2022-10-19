@@ -264,6 +264,7 @@ function App() {
       // True up to a real index
       const newContainerIdx = containerIdx + 0.5;
 
+      // Add item into new container
       newCopy.splice(newContainerIdx, 0, [
         { ...item, containerIdx: newContainerIdx, currentIdx: 0 },
       ]);
@@ -272,6 +273,7 @@ function App() {
       const filteredCopy = newCopy.filter(
         (singleContainer) => singleContainer?.length > 0
       );
+
       setItems(filteredCopy);
       return;
     }
