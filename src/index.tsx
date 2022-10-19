@@ -346,7 +346,6 @@ function App() {
     }
 
     // Place in between
-    console.log("placing in between");
     copy.splice(currentIdx > idx ? idx : idx - 1, 0, {
       ...item,
       containerIdx,
