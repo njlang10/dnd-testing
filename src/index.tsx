@@ -11,7 +11,9 @@ export type ItemData = {
   containerIdx: number;
   currentIdx: number;
 };
-
+/**
+ * Container to drop blocks on to
+ */
 function InnerDropContainer({
   currentIdx,
   containerIdx,
@@ -67,7 +69,7 @@ function InnerDropContainer({
 }
 
 /**
- * Individual Block
+ * Individual Block that holds content, and is a drag target
  */
 function BlockItem({
   id,
@@ -115,7 +117,7 @@ function BlockItem({
 }
 
 /**
- * Single container which can be oriented horizontally or vertically
+ * Single container which can be oriented horizontally or vertically, and organizes blocks + manages dnd
  */
 function OrientableContainer({
   orientation,
@@ -131,7 +133,7 @@ function OrientableContainer({
   onItemDrop: (item: ItemData, idx: number, containerIdx: number) => void;
   // children: React.ReactNode;
 }): JSX.Element {
-  // Empty container
+  // Empty container base case
   if (itemData?.length === 0) {
     return (
       <div
@@ -156,6 +158,8 @@ function OrientableContainer({
       </div>
     );
   }
+
+  // Container with data
   return (
     <div
       style={{
@@ -187,7 +191,7 @@ function OrientableContainer({
             <React.Fragment
               key={`wrapper-${currentIdx}-${containerIdx}-${item.id}`}
             >
-              {/* Left based dropcontainer */}
+              {/* Pre-block drop site */}
               <InnerDropContainer
                 key={`drop-${currentIdx}-${containerIdx}-${item.id}`}
                 currentIdx={currentIdx}
@@ -216,6 +220,7 @@ function OrientableContainer({
           fullWidth={false}
         />
       </div>
+      {/* End of container drop */}
       {isEndContainer && (
         <OrientableContainer
           key={containerIdx + 0.5}
