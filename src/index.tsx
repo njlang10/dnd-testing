@@ -358,28 +358,34 @@ function App() {
         const newContainerIdx = toCoords?.containerIdx;
 
         console.log("Going from ", oldSubContainerIdx, "to ", newRowIdx);
-      // if (
-      //   sameRow &&
-      //   sameContainer &&
-      //   oldSubContainerIdx != null &&
-      //   newRowIdx != null
-      // ) {
-      //   const movedBlock = copyOfBlocks.contents[oldSubContainerIdx];
-      //   // Add it in
-      //   copyOfBlocks.contents.splice(newRowIdx, 0, movedBlock);
+        // Same row and container
+        if (
+          sameRow &&
+          sameContainer &&
+          oldContainerIdx != null &&
+          oldSubContainerIdx != null &&
+          newRowIdx != null
+        ) {
+          const oldContainerRef = copyOfBlocks.containers[oldContainerIdx];
+          const movedBlock =
+            copyOfBlocks.containers[oldContainerIdx].contents[
+              oldSubContainerIdx
+            ];
+          // Add it in
+          oldContainerRef.contents.splice(newRowIdx, 0, movedBlock);
 
-      //   // Since we are indexed to the left, we need to add 1 to our right padding if we
-      //   // move from a further position, to a shorter position
-      //   const removalIdx =
-      //     newRowIdx > oldSubContainerIdx
-      //       ? oldSubContainerIdx
-      //       : oldSubContainerIdx + 1;
-      //   // Remove the old idx
-      //   copyOfBlocks.contents.splice(removalIdx, 1);
-      // }
+          // Since we are indexed to the left, we need to add 1 to our right padding if we
+          // move from a further position, to a shorter position
+          const removalIdx =
+            newRowIdx > oldSubContainerIdx
+              ? oldSubContainerIdx
+              : oldSubContainerIdx + 1;
+          // Remove the old idx
+          oldContainerRef.contents.splice(removalIdx, 1);
+        }
 
-      // setBlocks(copyOfBlocks);
-      // return;
+        setBlocks(copyOfBlocks);
+        return;
     }
   };
 
