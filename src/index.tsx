@@ -163,7 +163,7 @@ function BlockContainerView({
         return (
           <>
             <DropContainer
-              key={`pre_block_${coordinates}`}
+              key={`pre_block_${JSON.stringify(coordinates)}_${blockIdx}`}
               dropLocation="PRE_BLOCK"
               acceptedTypes={["BLOCK"]}
               coordinates={{ ...coordinates, subContainerIdx: blockIdx }}
@@ -171,7 +171,7 @@ function BlockContainerView({
               onDrop={onDrop}
             />
             <SingleBlock
-              key={`block_${coordinates}`}
+              key={`block_${JSON.stringify(coordinates)}_${blockIdx}}`}
               contents={individualBlock}
               coordinates={{ ...coordinates, subContainerIdx: blockIdx }}
             />
@@ -179,7 +179,9 @@ function BlockContainerView({
         );
       })}
       <DropContainer
-        key={`post_block_${{ coordinates }}`}
+        key={`post_block_${JSON.stringify(coordinates)}_${
+          container.contents.length
+        }`}
         dropLocation="POST_BLOCK"
         acceptedTypes={["BLOCK"]}
         coordinates={{
@@ -187,6 +189,72 @@ function BlockContainerView({
           subContainerIdx: container.contents.length,
         }}
         orientation={container.orientation}
+        onDrop={onDrop}
+      />
+    </div>
+  );
+}
+
+const CONTAINER_LAYOUT: ContainerOrientation = "HORIZONTAL";
+const CONTAINER_ACCEPTS_DROPS_FROM: DraggableTypes[] = [
+  "BLOCK",
+  "CONTAINER",
+  "ROW",
+];
+
+function BlockContainersView({
+  rowContainer,
+  coordinates,
+  onDrop,
+}: {
+  rowContainer: RowContainer;
+  coordinates: Coordinates;
+  onDrop: OnDropFunc;
+}): JSX.Element {
+  return (
+    <div
+      style={{
+        display: "flex",
+        flexDirection: "row",
+        width: "100%",
+        height: "100%",
+      }}
+    >
+      {rowContainer.containers.map((singleContainer, containerIdx) => {
+        return (
+          <>
+            <DropContainer
+              key={`pre_container_${JSON.stringify(
+                coordinates
+              )}_${containerIdx}`}
+              dropLocation="PRE_CONTAINER"
+              acceptedTypes={CONTAINER_ACCEPTS_DROPS_FROM}
+              coordinates={{ ...coordinates, containerIdx: containerIdx }}
+              orientation={CONTAINER_LAYOUT}
+              onDrop={onDrop}
+            />
+            <BlockContainerView
+              key={`block_container_${JSON.stringify(
+                coordinates
+              )}_${containerIdx}`}
+              container={singleContainer}
+              coordinates={{ ...coordinates, containerIdx: containerIdx }}
+              onDrop={onDrop}
+            />
+          </>
+        );
+      })}
+      <DropContainer
+        key={`post_container_${JSON.stringify(coordinates)}_${
+          rowContainer.containers.length
+        }}`}
+        dropLocation="POST_CONTAINER"
+        acceptedTypes={CONTAINER_ACCEPTS_DROPS_FROM}
+        coordinates={{
+          ...coordinates,
+          subContainerIdx: rowContainer.containers.length,
+        }}
+        orientation={CONTAINER_LAYOUT}
         onDrop={onDrop}
       />
     </div>
