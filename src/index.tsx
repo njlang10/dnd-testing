@@ -168,7 +168,8 @@ function OrientableContainer({
     </div>
   );
 }
-export type DropType = "ROW" | "CONTAINER" | "BLOCK";
+export type ContainerType = "ROW" | "CONTAINER";
+export type DraggableTypes = ContainerType & "BLOCK";
 export type DropLocation =
   | "PRE_ROW"
   | "POST_ROW"
@@ -177,7 +178,61 @@ export type DropLocation =
   | "PRE_BLOCK"
   | "POST_BLOCK";
 
-const FAKE_DATA = [];
+export type Coordinates = {
+  rowIdx: number;
+  containerIdx?: number;
+  subContainerIdx?: number;
+};
+export type BlockContents = { id: number; text: string };
+export type BlockContainer = {
+  id: number;
+  orientation: ContainerOrientation;
+  containerType: ContainerType;
+  contents: BlockContents[];
+};
+export type RowContainer = {
+  id: number;
+  orientation: ContainerOrientation;
+  containerType: ContainerType;
+  containers: BlockContainer[];
+};
+
+const FAKE_DATA: RowContainer[] = [
+  {
+    id: 0,
+    orientation: "HORIZONTAL",
+    containerType: "ROW",
+    containers: [
+      {
+        id: 0,
+        orientation: "HORIZONTAL",
+        containerType: "CONTAINER",
+        contents: [
+          { id: 0, text: "Hello" },
+          { id: 1, text: "GoodBye" },
+          { id: 2, text: "Again" },
+        ],
+      },
+    ],
+  },
+  {
+    id: 0,
+    orientation: "HORIZONTAL",
+    containerType: "ROW",
+    containers: [
+      {
+        id: 0,
+        orientation: "VERTICAL",
+        containerType: "CONTAINER",
+        contents: [
+          { id: 0, text: "Hello" },
+          { id: 1, text: "GoodBye" },
+          { id: 2, text: "Again" },
+        ],
+      },
+    ],
+  },
+];
 
 function App() {
   const [blockitems, setItems] = useState<ItemData[][]>(() => [
