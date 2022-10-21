@@ -4,7 +4,6 @@ import { HTML5Backend } from "react-dnd-html5-backend";
 import React, { useState } from "react";
 
 export type ContainerOrientation = "HORIZONTAL" | "VERTICAL";
-
 export type ContainerType = "ROW" | "CONTAINER";
 export type DraggableTypes = ContainerType | "BLOCK";
 export type DropLocation =
@@ -96,7 +95,7 @@ function DropContainer({
         console.log(
           `Request to drop item ${
             monitor.getItemType() as DraggableTypes
-          } from ${movedItem} to ${coordinates}`
+          } from ${JSON.stringify(movedItem)} to ${JSON.stringify(coordinates)}`
         );
         onDrop(
           monitor.getItemType() as DraggableTypes,
@@ -108,7 +107,7 @@ function DropContainer({
         return { isOver: !!monitor.isOver() };
       },
     }),
-    [acceptedTypes, coordinates, orientation, onDrop] // NOTE: This is important! If you don't add your deps, any state setting will be STALE
+    [dropLocation, acceptedTypes, coordinates, orientation, onDrop] // NOTE: This is important! If you don't add your deps, any state setting will be STALE
   );
 
   let color: React.CSSProperties["backgroundColor"] = "pink";
@@ -167,7 +166,7 @@ function BlockContainerView({
               key={`pre_block_${coordinates}`}
               dropLocation="PRE_BLOCK"
               acceptedTypes={["BLOCK"]}
-              coordinates={{ ...coordinates, subContainerIdx: -1 }}
+              coordinates={{ ...coordinates, subContainerIdx: blockIdx }}
               orientation={container.orientation}
               onDrop={onDrop}
             />
@@ -229,6 +228,16 @@ const FAKE_DATA: RowContainer[] = [
     ],
   },
 ];
+const CONTAINER: BlockContainer = {
+  id: 0,
+  orientation: "HORIZONTAL",
+  containerType: "CONTAINER",
+  contents: [
+    { id: 0, text: "Hello" },
+    { id: 1, text: "GoodBye" },
+    { id: 2, text: "Again" },
+  ],
+};
 
 function App() {
   // const [blockitems, setItems] = useState<ItemData[][]>(() => [
@@ -245,23 +254,50 @@ function App() {
   // ]);
 
   // console.log("items are ", blockitems);
-  const container: BlockContainer = {
-    id: 0,
-    orientation: "HORIZONTAL",
-    containerType: "CONTAINER",
-    contents: [
-      { id: 0, text: "Hello" },
-      { id: 1, text: "GoodBye" },
-      { id: 2, text: "Again" },
-    ],
+  const [blocks, setBlocks] = useState<BlockContainer>(() => {
+    return CONTAINER;
+  });
+
+  console.log("blocks are ", blocks);
+
+  const onDrop: OnDropFunc = (type, fromCoords, toCoords) => {
+    const sameRow = fromCoords.rowIdx === toCoords.rowIdx;
+    const sameContainer = fromCoords?.containerIdx === toCoords?.containerIdx;
+
+    const copyOfBlocks = { ...blocks };
+
+    switch (type) {
+      case "BLOCK":
+        const oldRowIdx = fromCoords?.subContainerIdx;
+        const newRowIdx = toCoords?.subContainerIdx;
+        if (
+          sameRow &&
+          sameContainer &&
+          oldRowIdx != null &&
+          newRowIdx != null
+        ) {
+          const movedBlock = copyOfBlocks.contents[oldRowIdx];
+          // Add it in
+          copyOfBlocks.contents.splice(newRowIdx, 0, movedBlock);
+          // Remove the old idx
+          copyOfBlocks.contents.splice(
+            oldRowIdx < newRowIdx ? oldRowIdx + 1 : oldRowIdx - 1,
+            1
+          );
+        }
+
+        setBlocks(copyOfBlocks);
+        return;
+    }
   };
+
   return (
     <div className="App">
       <DndProvider backend={HTML5Backend}>
         <BlockContainerView
-          container={container}
+          container={blocks}
           coordinates={{ rowIdx: 0, containerIdx: 0 }}
-          onDrop={() => {}}
+          onDrop={onDrop}
         />
       </DndProvider>
     </div>
