@@ -171,6 +171,7 @@ function BlockContainerView({
               onDrop={onDrop}
             />
             <SingleBlock
+              key={`block_${coordinates}`}
               contents={individualBlock}
               coordinates={{ ...coordinates, subContainerIdx: blockIdx }}
             />
@@ -240,20 +241,6 @@ const CONTAINER: BlockContainer = {
 };
 
 function App() {
-  // const [blockitems, setItems] = useState<ItemData[][]>(() => [
-  //   [
-  //     { id: 0, text: "Hello", containerIdx: 0, currentIdx: 0 },
-  //     { id: 1, text: "GoodBye", containerIdx: 0, currentIdx: 1 },
-  //     { id: 2, text: "Again", containerIdx: 0, currentIdx: 2 },
-  //   ],
-  //   [
-  //     { id: 0, text: "New", containerIdx: 0, currentIdx: 0 },
-  //     { id: 1, text: "Phone", containerIdx: 0, currentIdx: 1 },
-  //     { id: 2, text: "Who Dis?", containerIdx: 0, currentIdx: 2 },
-  //   ],
-  // ]);
-
-  // console.log("items are ", blockitems);
   const [blocks, setBlocks] = useState<BlockContainer>(() => {
     return CONTAINER;
   });
@@ -270,6 +257,7 @@ function App() {
       case "BLOCK":
         const oldRowIdx = fromCoords?.subContainerIdx;
         const newRowIdx = toCoords?.subContainerIdx;
+        console.log("Going from ", oldRowIdx, "to ", newRowIdx);
         if (
           sameRow &&
           sameContainer &&
@@ -279,11 +267,12 @@ function App() {
           const movedBlock = copyOfBlocks.contents[oldRowIdx];
           // Add it in
           copyOfBlocks.contents.splice(newRowIdx, 0, movedBlock);
+
+          // Since we are indexed to the left, we need to add 1 to our right padding if we
+          // move from a further position, to a shorter position
+          const removalIdx = newRowIdx > oldRowIdx ? oldRowIdx : oldRowIdx + 1;
           // Remove the old idx
-          copyOfBlocks.contents.splice(
-            oldRowIdx < newRowIdx ? oldRowIdx + 1 : oldRowIdx - 1,
-            1
-          );
+          copyOfBlocks.contents.splice(removalIdx, 1);
         }
 
         setBlocks(copyOfBlocks);
