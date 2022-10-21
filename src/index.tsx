@@ -228,7 +228,7 @@ function SingleBlock({
       ref={drag}
       style={{
         width: "100%",
-        height: "100%",
+        minHeight: "100%",
         border: "1px dashed gray",
         textAlign: "center",
         backgroundColor: props.isDragging ? "green" : "white",
@@ -408,115 +408,24 @@ function App() {
   ]);
 
   console.log("items are ", blockitems);
-
+  const container: BlockContainer = {
+    id: 0,
+    orientation: "HORIZONTAL",
+    containerType: "CONTAINER",
+    contents: [
+      { id: 0, text: "Hello" },
+      { id: 1, text: "GoodBye" },
+      { id: 2, text: "Again" },
+    ],
+  };
   return (
     <div className="App">
       <DndProvider backend={HTML5Backend}>
-        {blockitems.map((singleRow, rowIdx) => {
-          return (
-            <OrientableContainer
-              orientation="HORIZONTAL"
-              itemData={singleRow}
-              containerIdx={rowIdx}
-              onItemDrop={(
-                item: ItemData,
-                idx: number,
-                containerIdx: number
-              ) => {
-                // Dropped item is from a different row
-                const newCopy = [...blockitems];
-                const itemFromDiffRow = item?.containerIdx !== containerIdx;
-
-                if (itemFromDiffRow) {
-                  console.log("diff containers");
-                  // Remove from old container
-                  const rowCopy = newCopy[item.containerIdx];
-                  rowCopy.splice(item.currentIdx, 1);
-
-                  // Place in new container
-                  const newContainer = newCopy[containerIdx];
-                  newContainer.splice(idx, 0, {
-                    ...item,
-                    containerIdx: containerIdx,
-                    currentIdx: idx,
-                  });
-                  setItems(newCopy);
-                  return;
-                }
-
-                const currentIdx = singleRow.findIndex(
-                  (singleItem) => item.id === singleItem.id
-                );
-
-                // No-op, we moved in the same spot
-                if (idx === currentIdx || idx === currentIdx + 1) {
-                  return;
-                }
-
-                const copy = singleRow.filter(
-                  (filtered) => filtered.id !== item.id
-                );
-
-                // Place in front
-                if (idx === 0) {
-                  copy.splice(0, 0, item);
-                  newCopy[rowIdx] = copy;
-                  setItems(newCopy);
-                  return;
-                }
-
-                // // Place at back
-                if (idx === blockitems?.length) {
-                  copy.splice(blockitems?.length - 1, 0, item);
-                  newCopy[rowIdx] = copy;
-                  setItems(newCopy);
-                  return;
-                }
-
-                // // Place in between
-                copy.splice(currentIdx > idx ? idx : idx - 1, 0, item);
-                newCopy[rowIdx] = copy;
-                setItems(newCopy);
-              }}
-            />
-          );
-        })}
-        {/* <OrientableContainer
-          orientation="HORIZONTAL"
-          itemData={blockitems[0]}
-          onItemDrop={(item: ItemData, idx: number) => {
-            const currentIdx = blockitems.findIndex(
-              (singleItem) => item.id === singleItem.id
-            );
-
-            // No-op, we moved in the same spot
-            if (idx === currentIdx || idx === currentIdx + 1) {
-              return;
-            }
-
-            const copy = blockitems.filter(
-              (filtered) => filtered.id !== item.id
-            );
-
-            // Place in front
-            if (idx === 0) {
-              copy.splice(0, 0, item);
-              setItems(copy);
-              return;
-            }
-
-            // // Place at back
-            if (idx === blockitems?.length) {
-              copy.splice(blockitems?.length - 1, 0, item);
-              setItems(copy);
-              return;
-            }
-
-            // // Place in between
-            copy.splice(currentIdx > idx ? idx : idx - 1, 0, item);
-            setItems(copy);
-          }}
-        /> */}
+        <BlockContainerView
+          container={container}
+          coordinates={{ rowIdx: 0, containerIdx: 0 }}
+          onDrop={() => {}}
+        />
       </DndProvider>
     </div>
   );
