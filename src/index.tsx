@@ -304,6 +304,58 @@ function DropContainer({
   );
 }
 
+function BlockContainerView({
+  container,
+  coordinates,
+  onDrop,
+}: {
+  container: BlockContainer;
+  coordinates: Coordinates;
+  onDrop: OnDropFunc;
+}): JSX.Element {
+  return (
+    <div
+      style={{
+        display: "flex",
+        flexDirection:
+          container.orientation === "HORIZONTAL" ? "row" : "column",
+        width: "100%",
+        height: "100%",
+      }}
+    >
+      {container.contents.map((individualBlock, blockIdx) => {
+        return (
+          <>
+            <DropContainer
+              key={`pre_block_${coordinates}`}
+              dropLocation="PRE_BLOCK"
+              acceptedTypes={["BLOCK"]}
+              coordinates={{ ...coordinates, subContainerIdx: -1 }}
+              orientation={container.orientation}
+              onDrop={onDrop}
+            />
+            <SingleBlock
+              contents={individualBlock}
+              coordinates={{ ...coordinates, subContainerIdx: blockIdx }}
+            />
+          </>
+        );
+      })}
+      <DropContainer
+        key={`post_block_${{ coordinates }}`}
+        dropLocation="POST_BLOCK"
+        acceptedTypes={["BLOCK"]}
+        coordinates={{
+          ...coordinates,
+          subContainerIdx: container.contents.length,
+        }}
+        orientation={container.orientation}
+        onDrop={onDrop}
+      />
+    </div>
+  );
+}
+
 const FAKE_DATA: RowContainer[] = [
   {
     id: 0,
