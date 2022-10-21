@@ -64,7 +64,7 @@ function SingleBlock({
       ref={drag}
       style={{
         width: "100%",
-        minHeight: "100%",
+        height: "100%",
         border: "1px dashed gray",
         textAlign: "center",
         backgroundColor: props.isDragging ? "green" : "white",
@@ -132,7 +132,7 @@ function DropContainer({
       ref={drop}
       style={{
         width: orientation === "HORIZONTAL" ? "25px" : "100%",
-        height: orientation === "VERTICAL" ? "25px" : "100%",
+        minHeight: orientation === "VERTICAL" ? "25px" : "100%",
         backgroundColor: color,
         opacity: collectedProps.isOver ? "50%" : "100%",
       }}
@@ -156,7 +156,7 @@ function BlockContainerView({
         flexDirection:
           container.orientation === "HORIZONTAL" ? "row" : "column",
         width: "100%",
-        height: "100%",
+        minHeight: "100%",
       }}
     >
       {container.contents.map((individualBlock, blockIdx) => {
@@ -297,6 +297,35 @@ const FAKE_DATA: RowContainer[] = [
     ],
   },
 ];
+
+const CONTAINERS: RowContainer = {
+  id: 0,
+  orientation: "HORIZONTAL",
+  containerType: "ROW",
+  containers: [
+    {
+      id: 0,
+      orientation: "HORIZONTAL",
+      containerType: "CONTAINER",
+      contents: [
+        { id: 0, text: "Hello" },
+        { id: 1, text: "GoodBye" },
+        { id: 2, text: "Again" },
+      ],
+    },
+    {
+      id: 1,
+      orientation: "VERTICAL",
+      containerType: "CONTAINER",
+      contents: [
+        { id: 3, text: "New" },
+        { id: 4, text: "Phone" },
+        { id: 5, text: "Who dis?" },
+      ],
+    },
+  ],
+};
+
 const CONTAINER: BlockContainer = {
   id: 0,
   orientation: "HORIZONTAL",
@@ -309,8 +338,8 @@ const CONTAINER: BlockContainer = {
 };
 
 function App() {
-  const [blocks, setBlocks] = useState<BlockContainer>(() => {
-    return CONTAINER;
+  const [blocks, setBlocks] = useState<RowContainer>(() => {
+    return CONTAINERS;
   });
 
   console.log("blocks are ", blocks);
@@ -323,37 +352,43 @@ function App() {
 
     switch (type) {
       case "BLOCK":
-        const oldRowIdx = fromCoords?.subContainerIdx;
+        const oldSubContainerIdx = fromCoords?.subContainerIdx;
         const newRowIdx = toCoords?.subContainerIdx;
-        console.log("Going from ", oldRowIdx, "to ", newRowIdx);
-        if (
-          sameRow &&
-          sameContainer &&
-          oldRowIdx != null &&
-          newRowIdx != null
-        ) {
-          const movedBlock = copyOfBlocks.contents[oldRowIdx];
-          // Add it in
-          copyOfBlocks.contents.splice(newRowIdx, 0, movedBlock);
+        const oldContainerIdx = fromCoords?.containerIdx;
+        const newContainerIdx = toCoords?.containerIdx;
 
-          // Since we are indexed to the left, we need to add 1 to our right padding if we
-          // move from a further position, to a shorter position
-          const removalIdx = newRowIdx > oldRowIdx ? oldRowIdx : oldRowIdx + 1;
-          // Remove the old idx
-          copyOfBlocks.contents.splice(removalIdx, 1);
-        }
+        console.log("Going from ", oldSubContainerIdx, "to ", newRowIdx);
+      // if (
+      //   sameRow &&
+      //   sameContainer &&
+      //   oldSubContainerIdx != null &&
+      //   newRowIdx != null
+      // ) {
+      //   const movedBlock = copyOfBlocks.contents[oldSubContainerIdx];
+      //   // Add it in
+      //   copyOfBlocks.contents.splice(newRowIdx, 0, movedBlock);
 
-        setBlocks(copyOfBlocks);
-        return;
+      //   // Since we are indexed to the left, we need to add 1 to our right padding if we
+      //   // move from a further position, to a shorter position
+      //   const removalIdx =
+      //     newRowIdx > oldSubContainerIdx
+      //       ? oldSubContainerIdx
+      //       : oldSubContainerIdx + 1;
+      //   // Remove the old idx
+      //   copyOfBlocks.contents.splice(removalIdx, 1);
+      // }
+
+      // setBlocks(copyOfBlocks);
+      // return;
     }
   };
 
   return (
     <div className="App">
       <DndProvider backend={HTML5Backend}>
-        <BlockContainerView
-          container={blocks}
-          coordinates={{ rowIdx: 0, containerIdx: 0 }}
+        <BlockContainersView
+          rowContainer={blocks}
+          coordinates={{ rowIdx: 0 }}
           onDrop={onDrop}
         />
       </DndProvider>
