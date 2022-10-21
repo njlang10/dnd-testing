@@ -1,5 +1,5 @@
 import { render } from "react-dom";
-import { DndProvider, useDrag, useDrop } from "react-dnd";
+import { DndProvider, MonitorEventEmitter, useDrag, useDrop } from "react-dnd";
 import { HTML5Backend } from "react-dnd-html5-backend";
 import React, { useState } from "react";
 
@@ -169,7 +169,7 @@ function OrientableContainer({
   );
 }
 export type ContainerType = "ROW" | "CONTAINER";
-export type DraggableTypes = ContainerType & "BLOCK";
+export type DraggableTypes = ContainerType | "BLOCK";
 export type DropLocation =
   | "PRE_ROW"
   | "POST_ROW"
@@ -196,6 +196,12 @@ export type RowContainer = {
   containerType: ContainerType;
   containers: BlockContainer[];
 };
+
+export type OnDropFunc = (
+  droppedItemType: DraggableTypes,
+  droppedItemCoords: Coordinates,
+  droppedToCoords: Coordinates
+) => void;
 
 function SingleBlock({
   contents,
@@ -230,6 +236,71 @@ function SingleBlock({
     >
       {contents.text}
     </div>
+  );
+}
+
+function DropContainer({
+  dropLocation,
+  acceptedTypes,
+  coordinates,
+  orientation,
+  onDrop,
+}: {
+  dropLocation: DropLocation;
+  acceptedTypes: DraggableTypes | DraggableTypes[];
+  coordinates: Coordinates;
+  orientation: ContainerOrientation;
+  onDrop: OnDropFunc;
+}): JSX.Element {
+  const [collectedProps, drop] = useDrop(
+    () => ({
+      accept: acceptedTypes,
+      drop: (movedItem: Coordinates, monitor) => {
+        console.log(
+          `Request to drop item ${
+            monitor.getItemType() as DraggableTypes
+          } from ${movedItem} to ${coordinates}`
+        );
+        onDrop(
+          monitor.getItemType() as DraggableTypes,
+          movedItem as Coordinates,
+          coordinates
+        );
+      },
+      collect: (monitor) => {
+        return { isOver: !!monitor.isOver() };
+      },
+    }),
+    [acceptedTypes, coordinates, orientation, onDrop] // NOTE: This is important! If you don't add your deps, any state setting will be STALE
+  );
+
+  let color: React.CSSProperties["backgroundColor"] = "pink";
+
+  switch (dropLocation) {
+    case "PRE_ROW":
+    case "POST_ROW":
+      color = "pink";
+      break;
+    case "PRE_CONTAINER":
+    case "POST_CONTAINER":
+      color = "lightblue";
+      break;
+    case "PRE_BLOCK":
+    case "POST_BLOCK":
+      color = "lightgreen";
+      break;
+  }
+
+  return (
+    <div
+      ref={drop}
+      style={{
+        width: orientation === "HORIZONTAL" ? "25px" : "100%",
+        height: orientation === "VERTICAL" ? "25px" : "100%",
+        backgroundColor: color,
+        opacity: collectedProps.isOver ? "50%" : "100%",
+      }}
+    >{`${coordinates.rowIdx} / ${coordinates.containerIdx} / ${coordinates.subContainerIdx}`}</div>
   );
 }
 
