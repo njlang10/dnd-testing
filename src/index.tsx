@@ -437,6 +437,11 @@ function App() {
     const oldRowIdx = fromCoords.rowIdx;
     const newRowIdx = toCoords.rowIdx;
 
+    const isMovingToNewRowAndContainer =
+      newContainerIdx == null && newSubContainerIdx == null;
+    const isMovingToNewContainer =
+      newContainerIdx != null && newSubContainerIdx == null;
+
     // Mutable copy
     const copyOfBlocks = [...blocks];
 
@@ -445,10 +450,6 @@ function App() {
     switch (type) {
       case "BLOCK":
         console.log("Request to move block from ", fromCoords, "to ", toCoords);
-        const isMovingToNewRowAndContainer =
-          newContainerIdx == null && newSubContainerIdx == null;
-        const isMovingToNewContainer =
-          newContainerIdx != null && newSubContainerIdx == null;
 
         const movingBlock =
           copyOfBlocks[oldRowIdx].containers[oldContainerIdx!!].contents[
@@ -576,6 +577,35 @@ function App() {
         return;
 
       case "CONTAINER":
+        const movingContainer =
+          copyOfBlocks[oldRowIdx].containers[oldContainerIdx!!];
+        // Container to new row
+        if (isMovingToNewRowAndContainer) {
+          console.log("moving container to new row and container");
+          // Add to new row
+          const newRow: RowContainer = {
+            id: incrementAndGetId(),
+            orientation: "HORIZONTAL",
+            containerType: "ROW",
+            containers: [movingContainer],
+          };
+          copyOfBlocks.splice(newRowIdx, 0, newRow);
+
+          // Remove the block from the old position
+          const removalIdx = newRowIdx > oldRowIdx ? oldRowIdx : oldRowIdx + 1;
+
+          copyOfBlocks[removalIdx].containers.splice(oldContainerIdx!!, 1);
+
+          if (copyOfBlocks[removalIdx].containers.length === 0) {
+            copyOfBlocks.splice(removalIdx, 1);
+          }
+
+          setBlocks(copyOfBlocks);
+          return;
+        }
+
+        // Container to new between row
+        // Container to Existing container
         if (!(oldRowIdx === newRowIdx)) {
           console.log("Different rows!");
           return;
