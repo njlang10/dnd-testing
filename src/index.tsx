@@ -632,57 +632,19 @@ function App() {
           return;
         }
 
-        // Container to new between row
-        // Container to Existing container
-        if (!(oldRowIdx === newRowIdx)) {
-          console.log("Different rows!");
-          return;
+        // Move ALL container contents into another container
+        copyOfBlocks[newRowIdx].containers[newContainerIdx!!].contents.splice(
+          newSubContainerIdx!!,
+          0,
+          ...movingContainer.contents
+        );
+
+        copyOfBlocks[oldRowIdx].containers.splice(oldContainerIdx!!, 1);
+        if (copyOfBlocks[oldRowIdx].containers.length === 0) {
+          copyOfBlocks.splice(oldRowIdx);
         }
 
-        // Implement container movement
-        const oldContainerRef =
-          copyOfBlocks[oldRowIdx].containers[oldContainerIdx!!];
-
-        if (newSubContainerIdx != null) {
-          console.log("Move container into container");
-          const blocksInOldContainer = oldContainerRef.contents;
-          const newContainerRef =
-            copyOfBlocks[oldRowIdx].containers[newContainerIdx!!];
-
-          // Add all blocks into new container
-          newContainerRef.contents.splice(
-            newSubContainerIdx,
-            0,
-            ...blocksInOldContainer
-          );
-
-          // Remove old container
-          copyOfBlocks[oldRowIdx].containers.splice(oldContainerIdx!!, 1);
-          setBlocks(copyOfBlocks);
-          return;
-        }
-
-        // Move container to another container idx
-        if (oldContainerIdx != null && newContainerIdx != null) {
-          console.log("moving container to new index");
-          // Add the container to the new index
-          copyOfBlocks[oldRowIdx].containers.splice(
-            newContainerIdx,
-            0,
-            oldContainerRef
-          );
-
-          const removalIdx =
-            newContainerIdx > oldContainerIdx
-              ? oldContainerIdx
-              : oldContainerIdx + 1;
-
-          // Remove the container at the shifted index
-          copyOfBlocks[oldRowIdx].containers.splice(removalIdx, 1);
-          setBlocks(copyOfBlocks);
-          return;
-        }
-
+        setBlocks(copyOfBlocks);
         return;
     }
   };
