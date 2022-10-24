@@ -326,16 +326,16 @@ const CONTAINERS: RowContainer = {
   ],
 };
 
-const CONTAINER: BlockContainer = {
-  id: 0,
-  orientation: "HORIZONTAL",
-  containerType: "CONTAINER",
-  contents: [
-    { id: 0, text: "Hello" },
-    { id: 1, text: "GoodBye" },
-    { id: 2, text: "Again" },
-  ],
-};
+// const CONTAINER: BlockContainer = {
+//   id: 0,
+//   orientation: "HORIZONTAL",
+//   containerType: "CONTAINER",
+//   contents: [
+//     { id: 0, text: "Hello" },
+//     { id: 1, text: "GoodBye" },
+//     { id: 2, text: "Again" },
+//   ],
+// };
 
 function App() {
   const [blocks, setBlocks] = useState<RowContainer>(() => {
@@ -350,21 +350,28 @@ function App() {
 
     const copyOfBlocks = { ...blocks };
 
+    // Movements will be placed with first an addition, and then the subtraction
+    // of the old item
     switch (type) {
       case "BLOCK":
         const oldSubContainerIdx = fromCoords?.subContainerIdx;
-        const newRowIdx = toCoords?.subContainerIdx;
+        const newSubContainerIdx = toCoords?.subContainerIdx;
         const oldContainerIdx = fromCoords?.containerIdx;
         const newContainerIdx = toCoords?.containerIdx;
 
-        console.log("Going from ", oldSubContainerIdx, "to ", newRowIdx);
+        console.log(
+          "Going from ",
+          oldSubContainerIdx,
+          "to ",
+          newSubContainerIdx
+        );
         // Same row and container
         if (
           sameRow &&
           sameContainer &&
           oldContainerIdx != null &&
           oldSubContainerIdx != null &&
-          newRowIdx != null
+          newSubContainerIdx != null
         ) {
           const oldContainerRef = copyOfBlocks.containers[oldContainerIdx];
           const movedBlock =
@@ -372,19 +379,51 @@ function App() {
               oldSubContainerIdx
             ];
           // Add it in
-          oldContainerRef.contents.splice(newRowIdx, 0, movedBlock);
+          oldContainerRef.contents.splice(newSubContainerIdx, 0, movedBlock);
 
           // Since we are indexed to the left, we need to add 1 to our right padding if we
           // move from a further position, to a shorter position
           const removalIdx =
-            newRowIdx > oldSubContainerIdx
+            newSubContainerIdx > oldSubContainerIdx
               ? oldSubContainerIdx
               : oldSubContainerIdx + 1;
           // Remove the old idx
           oldContainerRef.contents.splice(removalIdx, 1);
+          setBlocks(copyOfBlocks);
+          return;
         }
 
-        setBlocks(copyOfBlocks);
+        // Same Row, different container
+        if (
+          sameRow &&
+          !sameContainer &&
+          oldContainerIdx != null &&
+          oldSubContainerIdx != null &&
+          newSubContainerIdx != null &&
+          newContainerIdx != null
+        ) {
+          const oldContainerRef = copyOfBlocks.containers[oldContainerIdx];
+          const movedBlock =
+            copyOfBlocks.containers[oldContainerIdx].contents[
+              oldSubContainerIdx
+            ];
+
+          // Add block into the new container at the specified position
+          const newContainerRef = copyOfBlocks.containers[newContainerIdx];
+          newContainerRef.contents.splice(newSubContainerIdx, 0, movedBlock);
+
+          // Remove the old idx at the old position. No index manipulation needed
+          oldContainerRef.contents.splice(oldContainerIdx, 1);
+
+          // Remove container if there are no contents
+          if (oldContainerRef.contents.length === 0) {
+            copyOfBlocks.containers.splice(oldContainerIdx, 1);
+          }
+
+          setBlocks(copyOfBlocks);
+          return;
+        }
+
         return;
     }
   };
