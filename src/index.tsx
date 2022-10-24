@@ -390,14 +390,14 @@ const FAKE_DATA: RowContainer[] = [
         orientation: "VERTICAL",
         containerType: "CONTAINER",
         contents: [
-          { id: 6, text: "Hello" },
-          { id: 7, text: "GoodBye" },
-          { id: 8, text: "Again" },
+          { id: 6, text: "Raphael" },
+          { id: 7, text: "Mendez" },
+          { id: 8, text: "Ramen Auto" },
         ],
       },
       {
         id: 4,
-        orientation: "VERTICAL",
+        orientation: "HORIZONTAL",
         containerType: "CONTAINER",
         contents: [
           { id: 9, text: "Betty" },
@@ -408,34 +408,6 @@ const FAKE_DATA: RowContainer[] = [
     ],
   },
 ];
-
-const CONTAINERS: RowContainer = {
-  id: 0,
-  orientation: "HORIZONTAL",
-  containerType: "ROW",
-  containers: [
-    {
-      id: 0,
-      orientation: "HORIZONTAL",
-      containerType: "CONTAINER",
-      contents: [
-        { id: 0, text: "Hello" },
-        { id: 1, text: "GoodBye" },
-        { id: 2, text: "Again" },
-      ],
-    },
-    {
-      id: 1,
-      orientation: "VERTICAL",
-      containerType: "CONTAINER",
-      contents: [
-        { id: 3, text: "New" },
-        { id: 4, text: "Phone" },
-        { id: 5, text: "Who dis?" },
-      ],
-    },
-  ],
-};
 
 /**
  * Helper for incrementing id's on things
