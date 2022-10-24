@@ -180,7 +180,7 @@ function BlockContainerView({
             <DropContainer
               key={`pre_block_${JSON.stringify(coordinates)}_${blockIdx}`}
               dropLocation="PRE_BLOCK"
-              acceptedTypes={["BLOCK"]}
+              acceptedTypes={["BLOCK", "CONTAINER"]}
               coordinates={{ ...coordinates, subContainerIdx: blockIdx }}
               orientation={container.orientation}
               onDrop={onDrop}
@@ -198,7 +198,7 @@ function BlockContainerView({
           container.contents.length
         }`}
         dropLocation="POST_BLOCK"
-        acceptedTypes={["BLOCK"]}
+        acceptedTypes={["BLOCK", "CONTAINER"]}
         coordinates={{
           ...coordinates,
           subContainerIdx: container.contents.length,
@@ -507,11 +507,28 @@ function App() {
       case "CONTAINER":
         // Implement container movement
         console.log("request to move a container");
+        const oldContainerRef = copyOfBlocks.containers[oldContainerIdx!!];
+
+        if (newSubContainerIdx != null) {
+          console.log("Move container into container");
+          const blocksInOldContainer = oldContainerRef.contents;
+          const newContainerRef = copyOfBlocks.containers[newContainerIdx!!];
+
+          // Add all blocks into new container
+          newContainerRef.contents.splice(
+            newSubContainerIdx,
+            blocksInOldContainer.length,
+            ...blocksInOldContainer
+          );
+
+          // Remove old container
+          copyOfBlocks.containers.splice(oldContainerIdx!!, 1);
+          setBlocks(copyOfBlocks);
+          return;
+        }
 
         // Move container to another container idx
         if (oldContainerIdx != null && newContainerIdx != null) {
-          const oldContainerRef = copyOfBlocks.containers[oldContainerIdx];
-
           // Add the container to the new index
           copyOfBlocks.containers.splice(newContainerIdx, 0, oldContainerRef);
 
