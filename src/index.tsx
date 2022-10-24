@@ -398,6 +398,7 @@ function App() {
     // of the old item
     switch (type) {
       case "BLOCK":
+        console.log("Request to move block from ", fromCoords, "to ", toCoords);
         // Same row and container
         if (
           sameRow &&
@@ -444,9 +445,10 @@ function App() {
           // Add block into the new container at the specified position
           const newContainerRef = copyOfBlocks.containers[newContainerIdx];
           newContainerRef.contents.splice(newSubContainerIdx, 0, movedBlock);
+          console.log("old container idx" + oldContainerIdx);
 
           // Remove the old idx at the old position. No index manipulation needed
-          oldContainerRef.contents.splice(oldContainerIdx, 1);
+          oldContainerRef.contents.splice(oldSubContainerIdx, 1);
 
           // Remove container if there are no contents
           if (oldContainerRef.contents.length === 0) {
@@ -481,7 +483,7 @@ function App() {
             newFilledContainer
           );
 
-          // Find where the old container is in the new ordering
+          // Find where the old block is in the new ordering
           const removalIdx =
             newContainerIdx > oldContainerIdx
               ? oldContainerIdx
@@ -505,6 +507,25 @@ function App() {
       case "CONTAINER":
         // Implement container movement
         console.log("request to move a container");
+
+        // Move container to another container idx
+        if (oldContainerIdx != null && newContainerIdx != null) {
+          const oldContainerRef = copyOfBlocks.containers[oldContainerIdx];
+
+          // Add the container to the new index
+          copyOfBlocks.containers.splice(newContainerIdx, 0, oldContainerRef);
+
+          const removalIdx =
+            newContainerIdx > oldContainerIdx
+              ? oldContainerIdx
+              : oldContainerIdx + 1;
+
+          // Remove the container at the shifted index
+          copyOfBlocks.containers.splice(removalIdx, 1);
+          setBlocks(copyOfBlocks);
+          return;
+        }
+
         return;
     }
   };
