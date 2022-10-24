@@ -149,6 +149,19 @@ function BlockContainerView({
   coordinates: Coordinates;
   onDrop: OnDropFunc;
 }): JSX.Element {
+  const [props, drag] = useDrag(
+    () => ({
+      type: "CONTAINER",
+      item: coordinates,
+      collect: (monitor) => {
+        return {
+          isDragging: !!monitor.isDragging(),
+        };
+      },
+    }),
+    [container, coordinates, onDrop]
+  );
+
   return (
     <div
       style={{
@@ -157,7 +170,9 @@ function BlockContainerView({
           container.orientation === "HORIZONTAL" ? "row" : "column",
         width: "100%",
         minHeight: "100%",
+        opacity: props.isDragging ? "50%" : "100%",
       }}
+      ref={drag}
     >
       {container.contents.map((individualBlock, blockIdx) => {
         return (
@@ -211,6 +226,19 @@ function BlockContainersView({
   coordinates: Coordinates;
   onDrop: OnDropFunc;
 }): JSX.Element {
+  // const [props, drag] = useDrag(
+  //   () => ({
+  //     type: "BLOCK",
+  //     item: coordinates,
+  //     collect: (monitor) => {
+  //       return {
+  //         isDragging: !!monitor.isDragging(),
+  //       };
+  //     },
+  //   }),
+  //   [rowContainer, coordinates, onDrop]
+  // );
+
   return (
     <div
       style={{
@@ -218,7 +246,9 @@ function BlockContainersView({
         flexDirection: "row",
         width: "100%",
         height: "100%",
+        // opacity: props.isDragging ? "50%" : "100%",
       }}
+      // ref={drag}
     >
       {rowContainer.containers.map((singleContainer, containerIdx) => {
         return (
@@ -355,17 +385,19 @@ function App() {
     const sameRow = fromCoords.rowIdx === toCoords.rowIdx;
     const sameContainer = fromCoords?.containerIdx === toCoords?.containerIdx;
 
+    // Coordinate information
+    const oldSubContainerIdx = fromCoords?.subContainerIdx;
+    const newSubContainerIdx = toCoords?.subContainerIdx;
+    const oldContainerIdx = fromCoords?.containerIdx;
+    const newContainerIdx = toCoords?.containerIdx;
+
+    // Mutable copy
     const copyOfBlocks = { ...blocks };
 
     // Movements will be placed with first an addition, and then the subtraction
     // of the old item
     switch (type) {
       case "BLOCK":
-        const oldSubContainerIdx = fromCoords?.subContainerIdx;
-        const newSubContainerIdx = toCoords?.subContainerIdx;
-        const oldContainerIdx = fromCoords?.containerIdx;
-        const newContainerIdx = toCoords?.containerIdx;
-
         // Same row and container
         if (
           sameRow &&
@@ -468,6 +500,11 @@ function App() {
           return;
         }
 
+        return;
+
+      case "CONTAINER":
+        // Implement container movement
+        console.log("request to move a container");
         return;
     }
   };
