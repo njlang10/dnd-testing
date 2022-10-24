@@ -604,6 +604,34 @@ function App() {
           return;
         }
 
+        // Moving to a new container between or around containers
+        if (
+          oldSubContainerIdx == null &&
+          newSubContainerIdx == null &&
+          oldContainerIdx != null &&
+          newContainerIdx != null
+        ) {
+          copyOfBlocks[newRowIdx].containers.splice(
+            newContainerIdx,
+            0,
+            movingContainer
+          );
+
+          const removalIdx =
+            (sameRow && newContainerIdx > oldContainerIdx!!) || !sameRow
+              ? oldContainerIdx!!
+              : oldContainerIdx!! + 1;
+
+          copyOfBlocks[oldRowIdx].containers.splice(removalIdx, 1);
+
+          if (copyOfBlocks[oldRowIdx].containers.length === 0) {
+            copyOfBlocks.splice(oldRowIdx);
+          }
+
+          setBlocks(copyOfBlocks);
+          return;
+        }
+
         // Container to new between row
         // Container to Existing container
         if (!(oldRowIdx === newRowIdx)) {
