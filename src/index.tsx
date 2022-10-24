@@ -473,14 +473,18 @@ function App() {
     switch (type) {
       case "BLOCK":
         console.log("Request to move block from ", fromCoords, "to ", toCoords);
-        const isMovingToNewRow =
+        const isMovingToNewRowAndContainer =
           newContainerIdx == null && newSubContainerIdx == null;
+        const isMovingToNewContainer =
+          newContainerIdx != null && newSubContainerIdx == null;
 
         const fromRowRef = copyOfBlocks[oldRowIdx];
         const fromContainerRef = fromRowRef.containers[oldContainerIdx!!];
 
-        if (isMovingToNewRow) {
-          console.log("Existing block to new row");
+        if (isMovingToNewRowAndContainer) {
+          console.log(
+            "Existing block to non-existant, new row and new container"
+          );
           // Add to new row
           const newRow: RowContainer = {
             id: incrementAndGetId(),
@@ -489,7 +493,7 @@ function App() {
             containers: [
               {
                 id: incrementAndGetId(),
-                orientation: "HORIZONTAL", // change this later,
+                orientation: "HORIZONTAL", // TODO: Change this later,
                 containerType: "CONTAINER",
                 contents: [fromContainerRef.contents[oldSubContainerIdx!!]],
               },
@@ -514,6 +518,47 @@ function App() {
           // Remove the row altogether if empty
           if (copyOfBlocks[removalIdx].containers.length === 0) {
             copyOfBlocks.splice(removalIdx, 1);
+          }
+
+          setBlocks(copyOfBlocks);
+          return;
+        }
+
+        if (isMovingToNewContainer) {
+          console.log("Shifting block to new container");
+          const newContainer: BlockContainer = {
+            id: incrementAndGetId(),
+            orientation: "HORIZONTAL", // TODO: Change this later
+            containerType: "CONTAINER",
+            contents: [fromContainerRef.contents[oldSubContainerIdx!!]],
+          };
+
+          // Add new container + block to existing row
+          copyOfBlocks[newRowIdx].containers.splice(
+            newContainerIdx,
+            0,
+            newContainer
+          );
+
+          // Remove from old container and place in new container
+          const removalIdx =
+            (sameRow && newContainerIdx > oldContainerIdx!!) || !sameRow
+              ? oldContainerIdx!!
+              : oldContainerIdx!! + 1;
+
+          copyOfBlocks[oldRowIdx].containers[removalIdx].contents.splice(
+            oldSubContainerIdx!!,
+            1
+          );
+
+          if (
+            copyOfBlocks[oldRowIdx].containers[removalIdx].contents.length === 0
+          ) {
+            copyOfBlocks[oldRowIdx].containers.splice(removalIdx, 1);
+          }
+
+          if (copyOfBlocks[oldRowIdx].containers.length === 0) {
+            copyOfBlocks.splice(oldRowIdx, 1);
           }
 
           setBlocks(copyOfBlocks);
