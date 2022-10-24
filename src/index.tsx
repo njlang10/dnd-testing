@@ -283,18 +283,18 @@ function BlockContainersView({
   coordinates: Coordinates;
   onDrop: OnDropFunc;
 }): JSX.Element {
-  // const [props, drag] = useDrag(
-  //   () => ({
-  //     type: "BLOCK",
-  //     item: coordinates,
-  //     collect: (monitor) => {
-  //       return {
-  //         isDragging: !!monitor.isDragging(),
-  //       };
-  //     },
-  //   }),
-  //   [rowContainer, coordinates, onDrop]
-  // );
+  const [props, drag] = useDrag(
+    () => ({
+      type: "ROW",
+      item: coordinates,
+      collect: (monitor) => {
+        return {
+          isDragging: !!monitor.isDragging(),
+        };
+      },
+    }),
+    [rowContainer, coordinates, onDrop]
+  );
 
   return (
     <div
@@ -303,9 +303,9 @@ function BlockContainersView({
         flexDirection: "row",
         width: "100%",
         height: "100%",
-        // opacity: props.isDragging ? "50%" : "100%",
+        opacity: props.isDragging ? "50%" : "100%",
       }}
-      // ref={drag}
+      ref={drag}
     >
       {rowContainer.containers.map((singleContainer, containerIdx) => {
         return (
@@ -646,6 +646,24 @@ function App() {
 
         setBlocks(copyOfBlocks);
         return;
+
+      case "ROW":
+        console.log("Received a row drop");
+        const movingRow = copyOfBlocks[oldRowIdx];
+        // Move entire row to new row idx
+        if (
+          oldContainerIdx == null &&
+          newContainerIdx == null &&
+          oldSubContainerIdx == null &&
+          newSubContainerIdx == null
+        ) {
+          copyOfBlocks.splice(newRowIdx, 0, movingRow);
+
+          const removalIdx = newRowIdx > oldRowIdx ? oldRowIdx : oldRowIdx + 1;
+          copyOfBlocks.splice(removalIdx, 1);
+          setBlocks(copyOfBlocks);
+          return;
+        }
     }
   };
 
