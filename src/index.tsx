@@ -176,7 +176,11 @@ function BlockContainerView({
     >
       {container.contents.map((individualBlock, blockIdx) => {
         return (
-          <>
+          <React.Fragment
+            key={`fragment_container_block_${JSON.stringify(
+              coordinates
+            )}_${blockIdx}`}
+          >
             <DropContainer
               key={`pre_block_${JSON.stringify(coordinates)}_${blockIdx}`}
               dropLocation="PRE_BLOCK"
@@ -190,7 +194,7 @@ function BlockContainerView({
               contents={individualBlock}
               coordinates={{ ...coordinates, subContainerIdx: blockIdx }}
             />
-          </>
+          </React.Fragment>
         );
       })}
       <DropContainer
@@ -252,7 +256,11 @@ function BlockContainersView({
     >
       {rowContainer.containers.map((singleContainer, containerIdx) => {
         return (
-          <>
+          <React.Fragment
+            key={`fragment_container_${JSON.stringify(
+              coordinates
+            )}_${containerIdx}`}
+          >
             <DropContainer
               key={`pre_container_${JSON.stringify(
                 coordinates
@@ -271,7 +279,7 @@ function BlockContainersView({
               coordinates={{ ...coordinates, containerIdx: containerIdx }}
               onDrop={onDrop}
             />
-          </>
+          </React.Fragment>
         );
       })}
       <DropContainer
@@ -307,21 +315,41 @@ const FAKE_DATA: RowContainer[] = [
           { id: 2, text: "Again" },
         ],
       },
+      {
+        id: 1,
+        orientation: "VERTICAL",
+        containerType: "CONTAINER",
+        contents: [
+          { id: 3, text: "Los" },
+          { id: 4, text: "de la" },
+          { id: 5, text: "culpa" },
+        ],
+      },
     ],
   },
   {
-    id: 0,
+    id: 1,
     orientation: "HORIZONTAL",
     containerType: "ROW",
     containers: [
       {
-        id: 0,
+        id: 3,
         orientation: "VERTICAL",
         containerType: "CONTAINER",
         contents: [
-          { id: 0, text: "Hello" },
-          { id: 1, text: "GoodBye" },
-          { id: 2, text: "Again" },
+          { id: 6, text: "Hello" },
+          { id: 7, text: "GoodBye" },
+          { id: 8, text: "Again" },
+        ],
+      },
+      {
+        id: 4,
+        orientation: "VERTICAL",
+        containerType: "CONTAINER",
+        contents: [
+          { id: 9, text: "Betty" },
+          { id: 10, text: "La Fea" },
+          { id: 11, text: "Mercedes" },
         ],
       },
     ],
