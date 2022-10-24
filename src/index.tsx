@@ -653,11 +653,6 @@ function App() {
     <div className="App">
       <DndProvider backend={HTML5Backend}>
         <RowsContainerView rows={blocks} onDrop={onDrop} />
-        {/* <BlockContainersView
-          rowContainer={blocks}
-          coordinates={{ rowIdx: 0 }}
-          onDrop={onDrop}
-        /> */}
       </DndProvider>
     </div>
   );
