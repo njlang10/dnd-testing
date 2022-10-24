@@ -506,7 +506,6 @@ function App() {
 
       case "CONTAINER":
         // Implement container movement
-        console.log("request to move a container");
         const oldContainerRef = copyOfBlocks.containers[oldContainerIdx!!];
 
         if (newSubContainerIdx != null) {
@@ -529,6 +528,7 @@ function App() {
 
         // Move container to another container idx
         if (oldContainerIdx != null && newContainerIdx != null) {
+          console.log("moving container to new index");
           // Add the container to the new index
           copyOfBlocks.containers.splice(newContainerIdx, 0, oldContainerRef);
 
