@@ -252,7 +252,7 @@ function BlockContainersView({
         acceptedTypes={CONTAINER_ACCEPTS_DROPS_FROM}
         coordinates={{
           ...coordinates,
-          subContainerIdx: rowContainer.containers.length,
+          containerIdx: rowContainer.containers.length,
         }}
         orientation={CONTAINER_LAYOUT}
         onDrop={onDrop}
@@ -326,6 +326,13 @@ const CONTAINERS: RowContainer = {
   ],
 };
 
+let ID_START = 20;
+
+function incrementAndGetId(): number {
+  ID_START++;
+  return ID_START;
+}
+
 // const CONTAINER: BlockContainer = {
 //   id: 0,
 //   orientation: "HORIZONTAL",
@@ -359,12 +366,6 @@ function App() {
         const oldContainerIdx = fromCoords?.containerIdx;
         const newContainerIdx = toCoords?.containerIdx;
 
-        console.log(
-          "Going from ",
-          oldSubContainerIdx,
-          "to ",
-          newSubContainerIdx
-        );
         // Same row and container
         if (
           sameRow &&
@@ -418,6 +419,49 @@ function App() {
           // Remove container if there are no contents
           if (oldContainerRef.contents.length === 0) {
             copyOfBlocks.containers.splice(oldContainerIdx, 1);
+          }
+
+          setBlocks(copyOfBlocks);
+          return;
+        }
+
+        // In between containers
+        if (
+          newSubContainerIdx == null &&
+          newContainerIdx != null &&
+          oldContainerIdx != null &&
+          oldSubContainerIdx != null
+        ) {
+          // Make a new container at index
+          const oldContainerRef = copyOfBlocks.containers[oldContainerIdx];
+          const movedblock = oldContainerRef.contents[oldSubContainerIdx];
+          const newFilledContainer: BlockContainer = {
+            id: incrementAndGetId(), // THIS WILL BE REPLACED
+            orientation: oldContainerRef.orientation,
+            containerType: "CONTAINER",
+            contents: [movedblock],
+          };
+
+          // Add the new container
+          copyOfBlocks.containers.splice(
+            newContainerIdx,
+            0,
+            newFilledContainer
+          );
+
+          // Find where the old container is in the new ordering
+          const removalIdx =
+            newContainerIdx > oldContainerIdx
+              ? oldContainerIdx
+              : oldContainerIdx + 1;
+
+          // Remove the old idx at the old position. No index manipulation needed
+          const containerToRemove = copyOfBlocks.containers[removalIdx];
+          containerToRemove.contents.splice(oldSubContainerIdx, 1);
+
+          // Remove container if there are no contents
+          if (containerToRemove.contents.length === 0) {
+            copyOfBlocks.containers.splice(removalIdx, 1);
           }
 
           setBlocks(copyOfBlocks);
