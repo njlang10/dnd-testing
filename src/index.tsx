@@ -516,7 +516,7 @@ function App() {
           // Add all blocks into new container
           newContainerRef.contents.splice(
             newSubContainerIdx,
-            blocksInOldContainer.length,
+            0,
             ...blocksInOldContainer
           );
 
