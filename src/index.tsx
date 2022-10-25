@@ -675,7 +675,10 @@ function App() {
         return;
 
       case "ROW":
-        if (oldRowIdx === newRowIdx) {
+        if (
+          oldRowIdx === newRowIdx ||
+          (newRowIdx - oldRowIdx === 1 && newContainerIdx == null)
+        ) {
           console.log("Row to same row no op");
           return;
         }
@@ -712,6 +715,7 @@ function App() {
         }
 
         // Move all blocks from all containers in a row into an existing container
+        console.log("moving rows into blocks");
         let indexOffset = 0;
         for (const container of movingRow.containers) {
           copyOfBlocks[newRowIdx].containers[newContainerIdx!!].contents.splice(
