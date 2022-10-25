@@ -466,7 +466,7 @@ function App() {
           sameRow &&
           sameContainer &&
           (newSubContainerIdx === oldSubContainerIdx ||
-            Math.abs(newSubContainerIdx!! - oldSubContainerIdx!!) === 1)
+            newSubContainerIdx!! - oldSubContainerIdx!! === 1)
         ) {
           console.log("block same spot no op");
           return;
