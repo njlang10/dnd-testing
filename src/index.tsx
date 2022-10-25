@@ -594,10 +594,16 @@ function App() {
         return;
 
       case "CONTAINER":
-        if (sameRow && sameContainer) {
+        if (
+          sameRow &&
+          (sameContainer ||
+            (newContainerIdx!! - oldContainerIdx!! === 1 &&
+              newSubContainerIdx == null))
+        ) {
           console.log("Container same spot no op");
           return;
         }
+
         const movingContainer =
           copyOfBlocks[oldRowIdx].containers[oldContainerIdx!!];
         // Container to new row
