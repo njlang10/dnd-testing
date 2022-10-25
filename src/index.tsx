@@ -637,6 +637,7 @@ function App() {
           oldContainerIdx != null &&
           newContainerIdx != null
         ) {
+          console.log("Moving to new container between");
           copyOfBlocks[newRowIdx].containers.splice(
             newContainerIdx,
             0,
@@ -651,7 +652,7 @@ function App() {
           copyOfBlocks[oldRowIdx].containers.splice(removalIdx, 1);
 
           if (copyOfBlocks[oldRowIdx].containers.length === 0) {
-            copyOfBlocks.splice(oldRowIdx);
+            copyOfBlocks.splice(oldRowIdx, 1);
           }
 
           setBlocks(copyOfBlocks);
