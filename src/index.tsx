@@ -546,7 +546,6 @@ function App() {
 
         // Moving a block into an already existing container
         // Move the block to it's spot inside a container
-        console.log("made it to move a block to existing container");
         copyOfBlocks[newRowIdx].containers[newContainerIdx!!].contents.splice(
           newSubContainerIdx!!,
           0,
