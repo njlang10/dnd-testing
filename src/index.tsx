@@ -661,6 +661,21 @@ function App() {
 
           const removalIdx = newRowIdx > oldRowIdx ? oldRowIdx : oldRowIdx + 1;
           copyOfBlocks.splice(removalIdx, 1);
+
+          setBlocks(copyOfBlocks);
+          return;
+        }
+
+        // Move row to place in container
+        if (newContainerIdx != null) {
+          // Add all containers to new row
+          copyOfBlocks[newRowIdx].containers.splice(
+            newContainerIdx,
+            0,
+            ...movingRow.containers
+          );
+
+          copyOfBlocks.splice(oldRowIdx);
           setBlocks(copyOfBlocks);
           return;
         }
