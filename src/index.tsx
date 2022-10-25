@@ -426,6 +426,12 @@ function App() {
   console.log("blocks are ", blocks);
 
   const onDrop: OnDropFunc = (type, fromCoords, toCoords) => {
+    console.log(
+      "Request to move item " + type + " from ",
+      fromCoords,
+      " to ",
+      toCoords
+    );
     const sameRow = fromCoords.rowIdx === toCoords.rowIdx;
     const sameContainer = fromCoords?.containerIdx === toCoords?.containerIdx;
 
@@ -449,8 +455,6 @@ function App() {
     // of the old item
     switch (type) {
       case "BLOCK":
-        console.log("Request to move block from ", fromCoords, "to ", toCoords);
-
         const movingBlock =
           copyOfBlocks[oldRowIdx].containers[oldContainerIdx!!].contents[
             oldSubContainerIdx!!
@@ -460,9 +464,6 @@ function App() {
         const fromContainerRef = fromRowRef.containers[oldContainerIdx!!];
 
         if (isMovingToNewRowAndContainer) {
-          console.log(
-            "Existing block to non-existant, new row and new container"
-          );
           // Add to new row
           const newRow: RowContainer = {
             id: incrementAndGetId(),
@@ -503,7 +504,6 @@ function App() {
         }
 
         if (isMovingToNewContainer) {
-          console.log("Shifting block to new container");
           const newContainer: BlockContainer = {
             id: incrementAndGetId(),
             orientation: "HORIZONTAL", // TODO: Change this later
@@ -546,7 +546,7 @@ function App() {
 
         // Moving a block into an already existing container
         // Move the block to it's spot inside a container
-        console.log("Moving block into existing row and container");
+        console.log("made it to move a block to existing container");
         copyOfBlocks[newRowIdx].containers[newContainerIdx!!].contents.splice(
           newSubContainerIdx!!,
           0,
@@ -554,19 +554,21 @@ function App() {
         );
 
         const removalIdx =
-          (sameRow && newContainerIdx!! > oldContainerIdx!!) || !sameRow
-            ? oldContainerIdx!!
-            : oldContainerIdx!! + 1;
+          !sameContainer ||
+          (sameContainer && newSubContainerIdx!! > oldSubContainerIdx!!)
+            ? oldSubContainerIdx!!
+            : oldSubContainerIdx!! + 1;
 
-        copyOfBlocks[oldRowIdx].containers[removalIdx].contents.splice(
-          oldSubContainerIdx!!,
+        copyOfBlocks[oldRowIdx].containers[oldContainerIdx!!].contents.splice(
+          removalIdx,
           1
         );
 
         if (
-          copyOfBlocks[oldRowIdx].containers[removalIdx].contents.length === 0
+          copyOfBlocks[oldRowIdx].containers[oldContainerIdx!!].contents
+            .length === 0
         ) {
-          copyOfBlocks[oldRowIdx].containers.splice(removalIdx, 1);
+          copyOfBlocks[oldRowIdx].containers.splice(oldContainerIdx!!, 1);
         }
 
         if (copyOfBlocks[oldRowIdx].containers.length === 0) {
@@ -581,7 +583,6 @@ function App() {
           copyOfBlocks[oldRowIdx].containers[oldContainerIdx!!];
         // Container to new row
         if (isMovingToNewRowAndContainer) {
-          console.log("moving container to new row and container");
           // Add to new row
           const newRow: RowContainer = {
             id: incrementAndGetId(),
@@ -648,9 +649,7 @@ function App() {
         return;
 
       case "ROW":
-        console.log("Received a row drop");
         if (oldRowIdx === newRowIdx) {
-          console.log("Row to same row, no op");
           return;
         }
 
