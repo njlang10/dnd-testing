@@ -423,8 +423,6 @@ function App() {
     return FAKE_DATA;
   });
 
-  console.log("blocks are ", blocks);
-
   const onDrop: OnDropFunc = (type, fromCoords, toCoords) => {
     console.log(
       "Request to move item " + type + " from ",
