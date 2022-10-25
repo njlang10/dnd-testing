@@ -372,9 +372,9 @@ const FAKE_DATA: RowContainer[] = [
         orientation: "HORIZONTAL",
         containerType: "CONTAINER",
         contents: [
-          { id: 0, text: "Hello" },
-          { id: 1, text: "GoodBye" },
-          { id: 2, text: "Again" },
+          { id: 0, text: "One" },
+          { id: 1, text: "Two" },
+          { id: 2, text: "Three" },
         ],
       },
       {
@@ -382,9 +382,9 @@ const FAKE_DATA: RowContainer[] = [
         orientation: "VERTICAL",
         containerType: "CONTAINER",
         contents: [
-          { id: 3, text: "Los" },
-          { id: 4, text: "de la" },
-          { id: 5, text: "culpa" },
+          { id: 3, text: "Four" },
+          { id: 4, text: "Five" },
+          { id: 5, text: "Six" },
         ],
       },
     ],
@@ -399,9 +399,9 @@ const FAKE_DATA: RowContainer[] = [
         orientation: "VERTICAL",
         containerType: "CONTAINER",
         contents: [
-          { id: 6, text: "Raphael" },
-          { id: 7, text: "Mendez" },
-          { id: 8, text: "Ramen Auto" },
+          { id: 6, text: "Seven" },
+          { id: 7, text: "Eight" },
+          { id: 8, text: "Nine" },
         ],
       },
       {
@@ -409,9 +409,9 @@ const FAKE_DATA: RowContainer[] = [
         orientation: "HORIZONTAL",
         containerType: "CONTAINER",
         contents: [
-          { id: 9, text: "Betty" },
-          { id: 10, text: "La Fea" },
-          { id: 11, text: "Mercedes" },
+          { id: 9, text: "Ten" },
+          { id: 10, text: "Eleven" },
+          { id: 11, text: "Twelve" },
         ],
       },
     ],
@@ -462,6 +462,15 @@ function App() {
     // of the old item
     switch (type) {
       case "BLOCK":
+        if (
+          sameRow &&
+          sameContainer &&
+          (newSubContainerIdx === oldSubContainerIdx ||
+            Math.abs(newSubContainerIdx!! - oldSubContainerIdx!!) === 1)
+        ) {
+          console.log("block same spot no op");
+          return;
+        }
         const movingBlock =
           copyOfBlocks[oldRowIdx].containers[oldContainerIdx!!].contents[
             oldSubContainerIdx!!
@@ -585,6 +594,10 @@ function App() {
         return;
 
       case "CONTAINER":
+        if (sameRow && sameContainer) {
+          console.log("Container same spot no op");
+          return;
+        }
         const movingContainer =
           copyOfBlocks[oldRowIdx].containers[oldContainerIdx!!];
         // Container to new row
@@ -656,6 +669,7 @@ function App() {
 
       case "ROW":
         if (oldRowIdx === newRowIdx) {
+          console.log("Row to same row no op");
           return;
         }
 
