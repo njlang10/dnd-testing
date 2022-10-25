@@ -39,6 +39,9 @@ export type OnDropFunc = (
   droppedToCoords: Coordinates
 ) => void;
 
+/**
+ * Render a single block (right now text, but could take children instead)
+ */
 function SingleBlock({
   contents,
   coordinates,
@@ -75,6 +78,9 @@ function SingleBlock({
   );
 }
 
+/**
+ * Render a container that can accept various drop types, and call a function onDrop of an item
+ */
 function DropContainer({
   dropLocation,
   acceptedTypes,
@@ -140,6 +146,9 @@ function DropContainer({
   );
 }
 
+/**
+ * Renders blocks surrounded by dropzones
+ */
 function BlockContainerView({
   container,
   coordinates,
@@ -431,7 +440,7 @@ function App() {
       toCoords
     );
     const sameRow = fromCoords.rowIdx === toCoords.rowIdx;
-    const sameContainer = fromCoords?.containerIdx === toCoords?.containerIdx;
+    const sameContainer = fromCoords!!.containerIdx === toCoords!!.containerIdx;
 
     // Coordinate information
     const oldSubContainerIdx = fromCoords?.subContainerIdx;
