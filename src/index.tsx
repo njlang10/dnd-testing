@@ -184,7 +184,7 @@ function BlockContainerView({
             <DropContainer
               key={`pre_block_${JSON.stringify(coordinates)}_${blockIdx}`}
               dropLocation="PRE_BLOCK"
-              acceptedTypes={["BLOCK", "CONTAINER"]}
+              acceptedTypes={["BLOCK", "CONTAINER", "ROW"]}
               coordinates={{ ...coordinates, subContainerIdx: blockIdx }}
               orientation={container.orientation}
               onDrop={onDrop}
@@ -202,7 +202,7 @@ function BlockContainerView({
           container.contents.length
         }`}
         dropLocation="POST_BLOCK"
-        acceptedTypes={["BLOCK", "CONTAINER"]}
+        acceptedTypes={["BLOCK", "CONTAINER", "ROW"]}
         coordinates={{
           ...coordinates,
           subContainerIdx: container.contents.length,
@@ -649,6 +649,11 @@ function App() {
 
       case "ROW":
         console.log("Received a row drop");
+        if (oldRowIdx === newRowIdx) {
+          console.log("Row to same row, no op");
+          return;
+        }
+
         const movingRow = copyOfBlocks[oldRowIdx];
         // Move entire row to new row idx
         if (
@@ -666,8 +671,8 @@ function App() {
           return;
         }
 
-        // Move row to place in container
-        if (newContainerIdx != null) {
+        // Move containers of row into an existing row at a starting index as full containers
+        if (newContainerIdx != null && newSubContainerIdx == null) {
           // Add all containers to new row
           copyOfBlocks[newRowIdx].containers.splice(
             newContainerIdx,
@@ -675,10 +680,25 @@ function App() {
             ...movingRow.containers
           );
 
-          copyOfBlocks.splice(oldRowIdx);
+          copyOfBlocks.splice(oldRowIdx, 1);
           setBlocks(copyOfBlocks);
           return;
         }
+
+        // Move all blocks from all containers in a row into an existing container
+        let indexOffset = 0;
+        for (const container of movingRow.containers) {
+          copyOfBlocks[newRowIdx].containers[newContainerIdx!!].contents.splice(
+            newSubContainerIdx!! + indexOffset,
+            0,
+            ...container.contents
+          );
+          indexOffset += container.contents.length;
+        }
+
+        copyOfBlocks.splice(oldRowIdx, 1);
+        setBlocks(copyOfBlocks);
+        return;
     }
   };
 
