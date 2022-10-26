@@ -660,6 +660,7 @@ function App() {
         }
 
         // Move ALL container contents into another container
+        console.log("container to subcontainer");
         copyOfBlocks[newRowIdx].containers[newContainerIdx!!].contents.splice(
           newSubContainerIdx!!,
           0,
@@ -667,8 +668,9 @@ function App() {
         );
 
         copyOfBlocks[oldRowIdx].containers.splice(oldContainerIdx!!, 1);
+
         if (copyOfBlocks[oldRowIdx].containers.length === 0) {
-          copyOfBlocks.splice(oldRowIdx);
+          copyOfBlocks.splice(oldRowIdx, 1);
         }
 
         setBlocks(copyOfBlocks);
