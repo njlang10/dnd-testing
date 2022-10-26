@@ -468,7 +468,7 @@ function App() {
           (newSubContainerIdx === oldSubContainerIdx ||
             newSubContainerIdx!! - oldSubContainerIdx!! === 1)
         ) {
-          console.log("block same spot no op");
+          // No-op, same location
           return;
         }
         const movingBlock =
@@ -600,7 +600,7 @@ function App() {
             (newContainerIdx!! - oldContainerIdx!! === 1 &&
               newSubContainerIdx == null))
         ) {
-          console.log("Container same spot no op");
+          // No-op, same location
           return;
         }
 
@@ -637,7 +637,6 @@ function App() {
           oldContainerIdx != null &&
           newContainerIdx != null
         ) {
-          console.log("Moving to new container between");
           copyOfBlocks[newRowIdx].containers.splice(
             newContainerIdx,
             0,
@@ -660,7 +659,6 @@ function App() {
         }
 
         // Move ALL container contents into another container
-        console.log("container to subcontainer");
         copyOfBlocks[newRowIdx].containers[newContainerIdx!!].contents.splice(
           newSubContainerIdx!!,
           0,
@@ -681,7 +679,7 @@ function App() {
           oldRowIdx === newRowIdx ||
           (newRowIdx - oldRowIdx === 1 && newContainerIdx == null)
         ) {
-          console.log("Row to same row no op");
+          // No-op, same location
           return;
         }
 
@@ -717,7 +715,6 @@ function App() {
         }
 
         // Move all blocks from all containers in a row into an existing container
-        console.log("moving rows into blocks");
         let indexOffset = 0;
         for (const container of movingRow.containers) {
           copyOfBlocks[newRowIdx].containers[newContainerIdx!!].contents.splice(
