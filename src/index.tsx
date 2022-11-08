@@ -432,6 +432,8 @@ function App() {
     return FAKE_DATA;
   });
 
+  const [movement, setMovement] = useState<string | null>(null);
+
   const onDrop: OnDropFunc = (type, fromCoords, toCoords) => {
     console.log(
       "Request to move item " + type + " from ",
@@ -439,6 +441,27 @@ function App() {
       " to ",
       toCoords
     );
+    const itemType = type;
+    let toType = null;
+
+    if (toCoords?.containerIdx != null && toCoords?.subContainerIdx != null) {
+      toType = "SUBCONTAINER";
+    }
+
+    if (toCoords?.containerIdx != null && toCoords?.subContainerIdx == null) {
+      toType = "CONTAINER";
+    }
+
+    if (toCoords?.containerIdx == null && toCoords?.subContainerIdx == null) {
+      toType = "ROW";
+    }
+
+    setMovement(
+      `Moving a ${itemType} to a ${toType}, from coordinates ${JSON.stringify(
+        fromCoords
+      )} to coordinates ${JSON.stringify(toCoords)}`
+    );
+
     const sameRow = fromCoords.rowIdx === toCoords.rowIdx;
     const sameContainer = fromCoords!!.containerIdx === toCoords!!.containerIdx;
 
@@ -735,6 +758,7 @@ function App() {
     <div className="App">
       <DndProvider backend={HTML5Backend}>
         <RowsContainerView rows={blocks} onDrop={onDrop} />
+        {`last movement: ${movement}`}
       </DndProvider>
     </div>
   );
