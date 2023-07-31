@@ -7,6 +7,7 @@ import { BlockContainer } from "./components/BlockContainerView";
 import { incrementAndGetId } from "./shared/IdIncrement";
 import { FAKE_DATA } from "./data/FakeData";
 
+// CORE TYPES
 export type ContainerOrientation = "HORIZONTAL" | "VERTICAL";
 export type ContainerType = "ROW" | "CONTAINER";
 export type DraggableTypes = ContainerType | "BLOCK";
@@ -29,13 +30,37 @@ export type OnDropFunc = (
   droppedToCoords: Coordinates
 ) => void;
 
+/**
+ * HEY THERE! Welcome to the Drag And Drop (DnD) testing playground. The idea here was to
+ * get a sense of how it would be to make a drag and drop grid which allowed the following:
+ * - Rows can have N Containers, which can hold N Blocks, and can all be rearranged within eachother
+ * - Containers can be oriented horizontally, OR vertically
+ * 
+ * Assumptions Made:
+ * - This manages all state currently client side only, but could extend to persist on a server
+ * - The color coding is simply for better understanding where dropping can occur, but could 
+ * easily be removed to be hidden until drag
+ * - There is no current way to "add" a block, although this could be made
+ * - There is no current way to reorient a container, although this could be made
+ * 
+ * Things to note:
+ * 1) If you take too long to interact, Codesandbox may throw an untrue, compilation error
+ * which simply is not true
+ * 2) the onDrop() function is GIANT because this was made as a prototype
+ 
+ */
+
 function App() {
+  // This would likely come from a network call, so would
+  // potentially need to change to a useEffect()
   const [blocks, setBlocks] = useState<RowContainer[]>(() => {
     return FAKE_DATA;
   });
 
   const [movement, setMovement] = useState<string | null>(null);
 
+  // NOTE: This should be decomposed into pieces, but for deomonstration's sake it exists
+  // as a single function
   const onDrop: OnDropFunc = (type, fromCoords, toCoords) => {
     const itemType = type;
     let toType = null;
