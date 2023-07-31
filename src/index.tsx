@@ -366,6 +366,48 @@ function App() {
           BLUE, OR GREEN location. Objects are indexed as (# / # / #), referring
           to ROW / CONTAINER / SUBCONTAINER
         </div>
+        <div>
+          <h3 style={{ textAlign: "center" }}>Expected Behavior</h3>
+          <ul>
+            <li>
+              A WHITE BLOCK dragged to a PINK ROW results in a new ROW with a
+              SINGLE BLOCK{" "}
+            </li>
+            <li>
+              A WHITE BLOCK dragged to a BLUE CONTAINER results in a new
+              CONTAINER within A ROW with a SINGLE BLOCK
+            </li>
+            <li>
+              A WHITE BLOCK dragged to a GREEN CONTAINER results in that BLOCK
+              being added to the GREEN CONTAINER ITEMS
+            </li>
+            <li>
+              A GREEN CONTAINER dragged to a PINK ROW results in a new ROW with
+              the GREEN CONTAINER and all blocks
+            </li>
+            <li>
+              A GREEN CONTAINER dragged to a BLUE CONTAINER results in the
+              movement of that container to the specified position in the ROW
+            </li>
+            <li>
+              A GREEN CONTAINER dragged to a GREEN CONTAINER results in COMBINED
+              CONTAINER of all blocks from both containers{" "}
+            </li>
+            <li>
+              A BLUE CONTAINER dragged to a PINK ROW results in a new ROW with
+              ALL CONTAINERS transferred
+            </li>
+            <li>
+              A BLUE CONTAINER dragged to a GREEN CONTAINER results in all
+              BLOCKS from the blue container transferred into the GREEN
+              CONTAINER
+            </li>
+            <li>
+              A BLUE CONTAINER dragged to a BLUE CONTAINER results in all
+              CONTAINERS from the blue container transferred into specified ROW
+            </li>
+          </ul>
+        </div>
         <div
           style={{
             display: "flex",
