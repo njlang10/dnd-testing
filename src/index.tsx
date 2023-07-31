@@ -441,7 +441,7 @@ function App() {
           }}
         >
           <div style={{ display: "flex", flexDirection: "column" }}>
-            <h3>Drag Objects</h3>
+            <h3 style={{ textAlign: "center" }}>Drag Objects</h3>
             <ul>
               <li>White cards represent SINGLE BLOCKS</li>
               <li>Green containers represent BLOCK CONTAINERS within a row</li>
@@ -452,7 +452,7 @@ function App() {
             </ul>
           </div>
           <div style={{ display: "flex", flexDirection: "column" }}>
-            <h3>Drop Zones</h3>
+            <h3 style={{ textAlign: "center" }}>Drop Zones</h3>
             <ul>
               <li>Pink spaces represent a new ROW placement</li>
               <li>Blue spaces represent a new placement WITHIN A ROW</li>
