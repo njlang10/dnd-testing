@@ -46,6 +46,7 @@ export function BlockContainerView({
     <div
       style={{
         display: "flex",
+        cursor: "grab",
         flexDirection:
           container.orientation === "HORIZONTAL" ? "row" : "column",
         width: "100%",
