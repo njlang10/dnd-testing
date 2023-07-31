@@ -1,299 +1,405 @@
 import { render } from "react-dom";
-import { DndProvider, useDrag, useDrop } from "react-dnd";
+import { DndProvider } from "react-dnd";
 import { HTML5Backend } from "react-dnd-html5-backend";
 import React, { useState } from "react";
+import { RowsContainerView } from "./components/RowsContainerView";
+import { BlockContainer } from "./components/BlockContainerView";
+import { incrementAndGetId } from "./shared/IdIncrement";
+import { FAKE_DATA } from "./data/FakeData";
 
 export type ContainerOrientation = "HORIZONTAL" | "VERTICAL";
-export type DragTypes = "BLOCK" | "SUBCONTAINER";
-export type ItemData = {
+export type ContainerType = "ROW" | "CONTAINER";
+export type DraggableTypes = ContainerType | "BLOCK";
+
+export type Coordinates = {
+  rowIdx: number;
+  containerIdx?: number;
+  subContainerIdx?: number;
+};
+export type RowContainer = {
   id: number;
-  text: string;
-  containerIdx: number;
-  currentIdx: number;
+  orientation: ContainerOrientation;
+  containerType: ContainerType;
+  containers: BlockContainer[];
 };
 
-function InnerDropContainer({
-  currentIdx,
-  containerIdx,
-  orientation,
-  onDrop
-}: {
-  currentIdx: number;
-  containerIdx: number;
-  orientation: ContainerOrientation;
-  onDrop: (
-    item: ItemData,
-    newRowIndex: number,
-    newContainerIndex: number
-  ) => void;
-}): JSX.Element {
-  const [collectedProps, drop] = useDrop(
-    () => ({
-      accept: "BLOCK",
-      drop: (movedItem: ItemData, _monitor) => {
-        console.log(
-          "request to drop item ",
-          movedItem,
-          " to row",
-          currentIdx,
-          "and container ",
-          containerIdx
-        );
-        onDrop(movedItem, currentIdx, containerIdx);
-      },
-      collect: (monitor) => {
-        return { isOver: !!monitor.isOver() };
-      }
-    }),
-    [onDrop, currentIdx, containerIdx] // NOTE: This is important! If you don't add your deps, any state setting will be STALE
-  );
-
-  return (
-    <div
-      ref={drop}
-      style={{
-        width: orientation === "HORIZONTAL" ? "20px" : "100%",
-        height: orientation === "VERTICAL" ? "20px" : "100%",
-        backgroundColor: "pink",
-        opacity: collectedProps.isOver ? "50%" : "100%"
-      }}
-    ></div>
-  );
-}
-
-/**
- * Individual Block
- */
-function BlockItem({
-  id,
-  text,
-  currentIdx,
-  containerIdx
-}: {
-  id: number;
-  text: string;
-  currentIdx: number;
-  containerIdx: number;
-}): JSX.Element {
-  const [props, drag] = useDrag(
-    () => ({
-      type: "BLOCK",
-      item: {
-        id: id,
-        text: text,
-        containerIdx: containerIdx,
-        currentIdx: currentIdx
-      },
-      collect: (monitor) => {
-        return {
-          isDragging: !!monitor.isDragging()
-        };
-      }
-    }),
-    [currentIdx, containerIdx]
-  );
-
-  return (
-    <div
-      ref={drag}
-      style={{
-        width: "100%",
-        height: "100%",
-        border: "1px dashed gray",
-        textAlign: "center",
-        backgroundColor: props.isDragging ? "green" : "white"
-      }}
-    >
-      {text}
-    </div>
-  );
-}
-
-/**
- * Single container which can be oriented horizontally or vertically
- */
-function OrientableContainer({
-  orientation,
-  itemData,
-  containerIdx,
-  onItemDrop
-}: {
-  orientation: ContainerOrientation;
-  itemData: ItemData[];
-  containerIdx: number;
-  onItemDrop: (item: ItemData, idx: number, containerIdx: number) => void;
-  // children: React.ReactNode;
-}): JSX.Element {
-  return (
-    <div
-      style={{
-        display: "flex",
-        justifyContent: "center",
-        alignItems: "center",
-        flexDirection: orientation === "HORIZONTAL" ? "row" : "column",
-        width: orientation === "HORIZONTAL" ? "100%" : "15%",
-        height: orientation === "VERTICAL" ? "100%" : "30px",
-        border: "3px solid #0971F1"
-      }}
-    >
-      {itemData.map((item, currentIdx) => {
-        return (
-          <React.Fragment key={`wrapper-${currentIdx} - ${containerIdx}`}>
-            {/* Left based dropcontainer */}
-            <InnerDropContainer
-              key={`drop-${currentIdx}-${containerIdx}`}
-              currentIdx={currentIdx}
-              orientation={orientation}
-              onDrop={onItemDrop}
-              containerIdx={containerIdx}
-            />
-            <BlockItem
-              key={`item-${item.id}-${containerIdx}`}
-              id={item.id}
-              text={item.text}
-              currentIdx={currentIdx}
-              containerIdx={containerIdx}
-            />
-          </React.Fragment>
-        );
-      })}
-      {/* End of row drop container */}
-      <InnerDropContainer
-        key={`drop-${itemData?.length}-end-${containerIdx}`}
-        currentIdx={itemData?.length}
-        containerIdx={containerIdx}
-        orientation={orientation}
-        onDrop={onItemDrop}
-      />
-    </div>
-  );
-}
+export type OnDropFunc = (
+  droppedItemType: DraggableTypes,
+  droppedItemCoords: Coordinates,
+  droppedToCoords: Coordinates
+) => void;
 
 function App() {
-  const [blockitems, setItems] = useState<ItemData[][]>(() => [
-    [
-      { id: 0, text: "Hello", containerIdx: 0, currentIdx: 0 },
-      { id: 1, text: "GoodBye", containerIdx: 0, currentIdx: 1 },
-      { id: 2, text: "Again", containerIdx: 0, currentIdx: 2 }
-    ],
-    [
-      { id: 0, text: "New", containerIdx: 0, currentIdx: 0 },
-      { id: 1, text: "Phone", containerIdx: 0, currentIdx: 1 },
-      { id: 2, text: "Who Dis?", containerIdx: 0, currentIdx: 2 }
-    ]
-  ]);
+  const [blocks, setBlocks] = useState<RowContainer[]>(() => {
+    return FAKE_DATA;
+  });
 
-  console.log("items are ", blockitems);
+  const [movement, setMovement] = useState<string | null>(null);
+
+  const onDrop: OnDropFunc = (type, fromCoords, toCoords) => {
+    const itemType = type;
+    let toType = null;
+
+    if (toCoords?.containerIdx != null && toCoords?.subContainerIdx != null) {
+      toType = "SUBCONTAINER";
+    }
+
+    if (toCoords?.containerIdx != null && toCoords?.subContainerIdx == null) {
+      toType = "CONTAINER";
+    }
+
+    if (toCoords?.containerIdx == null && toCoords?.subContainerIdx == null) {
+      toType = "ROW";
+    }
+
+    setMovement(
+      `Moving a ${itemType} to a ${toType}, from coordinates ${JSON.stringify(
+        fromCoords
+      )} to coordinates ${JSON.stringify(toCoords)}`
+    );
+
+    const sameRow = fromCoords.rowIdx === toCoords.rowIdx;
+    const sameContainer = fromCoords!!.containerIdx === toCoords!!.containerIdx;
+
+    // Coordinate information
+    const oldSubContainerIdx = fromCoords?.subContainerIdx;
+    const newSubContainerIdx = toCoords?.subContainerIdx;
+    const oldContainerIdx = fromCoords?.containerIdx;
+    const newContainerIdx = toCoords?.containerIdx;
+    const oldRowIdx = fromCoords.rowIdx;
+    const newRowIdx = toCoords.rowIdx;
+
+    const isMovingToNewRowAndContainer =
+      newContainerIdx == null && newSubContainerIdx == null;
+    const isMovingToNewContainer =
+      newContainerIdx != null && newSubContainerIdx == null;
+
+    // Mutable copy
+    const copyOfBlocks = [...blocks];
+
+    // Movements will be placed with first an addition, and then the subtraction
+    // of the old item
+    switch (type) {
+      case "BLOCK":
+        if (
+          sameRow &&
+          sameContainer &&
+          (newSubContainerIdx === oldSubContainerIdx ||
+            newSubContainerIdx!! - oldSubContainerIdx!! === 1)
+        ) {
+          // No-op, same location
+          return;
+        }
+        const movingBlock =
+          copyOfBlocks[oldRowIdx].containers[oldContainerIdx!!].contents[
+            oldSubContainerIdx!!
+          ];
+
+        const fromRowRef = copyOfBlocks[oldRowIdx];
+        const fromContainerRef = fromRowRef.containers[oldContainerIdx!!];
+
+        if (isMovingToNewRowAndContainer) {
+          // Add to new row
+          const newRow: RowContainer = {
+            id: incrementAndGetId(),
+            orientation: "HORIZONTAL",
+            containerType: "ROW",
+            containers: [
+              {
+                id: incrementAndGetId(),
+                orientation: "HORIZONTAL", // TODO: Change this later,
+                containerType: "CONTAINER",
+                contents: [fromContainerRef.contents[oldSubContainerIdx!!]],
+              },
+            ],
+          };
+
+          // Add block as new full row with single container
+          copyOfBlocks.splice(newRowIdx, 0, newRow);
+
+          // Remove the block from the old position
+          const removalIdx = newRowIdx > oldRowIdx ? oldRowIdx : oldRowIdx + 1;
+
+          const containerWithRemoval =
+            copyOfBlocks[removalIdx].containers[oldContainerIdx!!];
+          containerWithRemoval.contents.splice(oldSubContainerIdx!!, 1);
+
+          // Remove the old container altogether if empty
+          if (containerWithRemoval.contents.length === 0) {
+            copyOfBlocks[removalIdx].containers.splice(oldContainerIdx!!, 1);
+          }
+
+          // Remove the row altogether if empty
+          if (copyOfBlocks[removalIdx].containers.length === 0) {
+            copyOfBlocks.splice(removalIdx, 1);
+          }
+
+          setBlocks(copyOfBlocks);
+          return;
+        }
+
+        if (isMovingToNewContainer) {
+          const newContainer: BlockContainer = {
+            id: incrementAndGetId(),
+            orientation: "HORIZONTAL", // TODO: Change this later
+            containerType: "CONTAINER",
+            contents: [fromContainerRef.contents[oldSubContainerIdx!!]],
+          };
+
+          // Add new container + block to existing row
+          copyOfBlocks[newRowIdx].containers.splice(
+            newContainerIdx,
+            0,
+            newContainer
+          );
+
+          // Remove from old container and place in new container. Choose the correct index
+          // based off of this being the same row or not
+          const removalIdx =
+            (sameRow && newContainerIdx > oldContainerIdx!!) || !sameRow
+              ? oldContainerIdx!!
+              : oldContainerIdx!! + 1;
+
+          copyOfBlocks[oldRowIdx].containers[removalIdx].contents.splice(
+            oldSubContainerIdx!!,
+            1
+          );
+
+          if (
+            copyOfBlocks[oldRowIdx].containers[removalIdx].contents.length === 0
+          ) {
+            copyOfBlocks[oldRowIdx].containers.splice(removalIdx, 1);
+          }
+
+          if (copyOfBlocks[oldRowIdx].containers.length === 0) {
+            copyOfBlocks.splice(oldRowIdx, 1);
+          }
+
+          setBlocks(copyOfBlocks);
+          return;
+        }
+
+        // Moving a block into an already existing container
+        // Move the block to it's spot inside a container
+        copyOfBlocks[newRowIdx].containers[newContainerIdx!!].contents.splice(
+          newSubContainerIdx!!,
+          0,
+          movingBlock
+        );
+
+        const removalIdx =
+          !sameContainer ||
+          (sameContainer && newSubContainerIdx!! > oldSubContainerIdx!!)
+            ? oldSubContainerIdx!!
+            : oldSubContainerIdx!! + 1;
+
+        copyOfBlocks[oldRowIdx].containers[oldContainerIdx!!].contents.splice(
+          removalIdx,
+          1
+        );
+
+        if (
+          copyOfBlocks[oldRowIdx].containers[oldContainerIdx!!].contents
+            .length === 0
+        ) {
+          copyOfBlocks[oldRowIdx].containers.splice(oldContainerIdx!!, 1);
+        }
+
+        if (copyOfBlocks[oldRowIdx].containers.length === 0) {
+          copyOfBlocks.splice(oldRowIdx, 1);
+        }
+
+        setBlocks(copyOfBlocks);
+        return;
+
+      case "CONTAINER":
+        if (
+          sameRow &&
+          (sameContainer ||
+            (newContainerIdx!! - oldContainerIdx!! === 1 &&
+              newSubContainerIdx == null))
+        ) {
+          // No-op, same location
+          return;
+        }
+
+        const movingContainer =
+          copyOfBlocks[oldRowIdx].containers[oldContainerIdx!!];
+        // Container to new row
+        if (isMovingToNewRowAndContainer) {
+          // Add to new row
+          const newRow: RowContainer = {
+            id: incrementAndGetId(),
+            orientation: "HORIZONTAL",
+            containerType: "ROW",
+            containers: [movingContainer],
+          };
+          copyOfBlocks.splice(newRowIdx, 0, newRow);
+
+          // Remove the block from the old position
+          const removalIdx = newRowIdx > oldRowIdx ? oldRowIdx : oldRowIdx + 1;
+
+          copyOfBlocks[removalIdx].containers.splice(oldContainerIdx!!, 1);
+
+          if (copyOfBlocks[removalIdx].containers.length === 0) {
+            copyOfBlocks.splice(removalIdx, 1);
+          }
+
+          setBlocks(copyOfBlocks);
+          return;
+        }
+
+        // Moving to a new container between or around containers
+        if (
+          oldSubContainerIdx == null &&
+          newSubContainerIdx == null &&
+          oldContainerIdx != null &&
+          newContainerIdx != null
+        ) {
+          copyOfBlocks[newRowIdx].containers.splice(
+            newContainerIdx,
+            0,
+            movingContainer
+          );
+
+          const removalIdx =
+            (sameRow && newContainerIdx > oldContainerIdx!!) || !sameRow
+              ? oldContainerIdx!!
+              : oldContainerIdx!! + 1;
+
+          copyOfBlocks[oldRowIdx].containers.splice(removalIdx, 1);
+
+          if (copyOfBlocks[oldRowIdx].containers.length === 0) {
+            copyOfBlocks.splice(oldRowIdx, 1);
+          }
+
+          setBlocks(copyOfBlocks);
+          return;
+        }
+
+        // Move ALL container contents into another container
+        copyOfBlocks[newRowIdx].containers[newContainerIdx!!].contents.splice(
+          newSubContainerIdx!!,
+          0,
+          ...movingContainer.contents
+        );
+
+        copyOfBlocks[oldRowIdx].containers.splice(oldContainerIdx!!, 1);
+
+        if (copyOfBlocks[oldRowIdx].containers.length === 0) {
+          copyOfBlocks.splice(oldRowIdx, 1);
+        }
+
+        setBlocks(copyOfBlocks);
+        return;
+
+      case "ROW":
+        if (
+          oldRowIdx === newRowIdx ||
+          (newRowIdx - oldRowIdx === 1 && newContainerIdx == null)
+        ) {
+          // No-op, same location
+          return;
+        }
+
+        const movingRow = copyOfBlocks[oldRowIdx];
+        // Move entire row to new row idx
+        if (
+          oldContainerIdx == null &&
+          newContainerIdx == null &&
+          oldSubContainerIdx == null &&
+          newSubContainerIdx == null
+        ) {
+          copyOfBlocks.splice(newRowIdx, 0, movingRow);
+
+          const removalIdx = newRowIdx > oldRowIdx ? oldRowIdx : oldRowIdx + 1;
+          copyOfBlocks.splice(removalIdx, 1);
+
+          setBlocks(copyOfBlocks);
+          return;
+        }
+
+        // Move containers of row into an existing row at a starting index as full containers
+        if (newContainerIdx != null && newSubContainerIdx == null) {
+          // Add all containers to new row
+          copyOfBlocks[newRowIdx].containers.splice(
+            newContainerIdx,
+            0,
+            ...movingRow.containers
+          );
+
+          copyOfBlocks.splice(oldRowIdx, 1);
+          setBlocks(copyOfBlocks);
+          return;
+        }
+
+        // Move all blocks from all containers in a row into an existing container
+        let indexOffset = 0;
+        for (const container of movingRow.containers) {
+          copyOfBlocks[newRowIdx].containers[newContainerIdx!!].contents.splice(
+            newSubContainerIdx!! + indexOffset,
+            0,
+            ...container.contents
+          );
+          indexOffset += container.contents.length;
+        }
+
+        copyOfBlocks.splice(oldRowIdx, 1);
+        setBlocks(copyOfBlocks);
+        return;
+    }
+  };
 
   return (
     <div className="App">
-      <DndProvider backend={HTML5Backend}>
-        {blockitems.map((singleRow, rowIdx) => {
-          return (
-            <OrientableContainer
-              orientation="HORIZONTAL"
-              itemData={singleRow}
-              containerIdx={rowIdx}
-              onItemDrop={(
-                item: ItemData,
-                idx: number,
-                containerIdx: number
-              ) => {
-                // Dropped item is from a different row
-                const newCopy = [...blockitems];
-                const itemFromDiffRow = item?.containerIdx !== containerIdx;
-
-                if (itemFromDiffRow) {
-                  console.log("diff containers");
-                  // Remove from old container
-                  const rowCopy = newCopy[item.containerIdx];
-                  rowCopy.splice(item.currentIdx, 1);
-
-                  // Place in new container
-                  const newContainer = newCopy[containerIdx];
-                  newContainer.splice(idx, 0, {
-                    ...item,
-                    containerIdx: containerIdx,
-                    currentIdx: idx
-                  });
-                  setItems(newCopy);
-                  return;
-                }
-
-                const currentIdx = singleRow.findIndex(
-                  (singleItem) => item.id === singleItem.id
-                );
-
-                // No-op, we moved in the same spot
-                if (idx === currentIdx || idx === currentIdx + 1) {
-                  return;
-                }
-
-                const copy = singleRow.filter(
-                  (filtered) => filtered.id !== item.id
-                );
-
-                // Place in front
-                if (idx === 0) {
-                  copy.splice(0, 0, item);
-                  newCopy[rowIdx] = copy;
-                  setItems(newCopy);
-                  return;
-                }
-
-                // // Place at back
-                if (idx === blockitems?.length) {
-                  copy.splice(blockitems?.length - 1, 0, item);
-                  newCopy[rowIdx] = copy;
-                  setItems(newCopy);
-                  return;
-                }
-
-                // // Place in between
-                copy.splice(currentIdx > idx ? idx : idx - 1, 0, item);
-                newCopy[rowIdx] = copy;
-                setItems(newCopy);
-              }}
-            />
-          );
-        })}
-        {/* <OrientableContainer
-          orientation="HORIZONTAL"
-          itemData={blockitems[0]}
-          onItemDrop={(item: ItemData, idx: number) => {
-            const currentIdx = blockitems.findIndex(
-              (singleItem) => item.id === singleItem.id
-            );
-
-            // No-op, we moved in the same spot
-            if (idx === currentIdx || idx === currentIdx + 1) {
-              return;
-            }
-
-            const copy = blockitems.filter(
-              (filtered) => filtered.id !== item.id
-            );
-
-            // Place in front
-            if (idx === 0) {
-              copy.splice(0, 0, item);
-              setItems(copy);
-              return;
-            }
-
-            // // Place at back
-            if (idx === blockitems?.length) {
-              copy.splice(blockitems?.length - 1, 0, item);
-              setItems(copy);
-              return;
-            }
-
-            // // Place in between
-            copy.splice(currentIdx > idx ? idx : idx - 1, 0, item);
-            setItems(copy);
+      <div
+        style={{
+          display: "flex",
+          flexDirection: "column",
+        }}
+      >
+        <h1 style={{ textAlign: "center" }}>
+          Welcome to Drag and Drop Explorer!
+        </h1>
+        <div style={{ textAlign: "center" }}>
+          Objects that are WHITE, GREEN, OR BLUE can be dragged to any PINK,
+          BLUE, OR GREEN location. Objects are indexed as (# / # / #), referring
+          to ROW / CONTAINER / SUBCONTAINER
+        </div>
+        <div
+          style={{
+            display: "flex",
+            flexDirection: "row",
+            alignItems: "center",
           }}
-        /> */}
-      </DndProvider>
+        >
+          <div style={{ display: "flex", flexDirection: "column" }}>
+            <h3>Drag Objects</h3>
+            <ul>
+              <li>White cards represent SINGLE BLOCKS</li>
+              <li>Green containers represent BLOCK CONTAINERS within a row</li>
+              <li>
+                Blue rows represent the ENTIRE ROW of block contains and single
+                blocks
+              </li>
+            </ul>
+          </div>
+          <div style={{ display: "flex", flexDirection: "column" }}>
+            <h3>Drop Zones</h3>
+            <ul>
+              <li>Pink spaces represent a new ROW placement</li>
+              <li>Blue spaces represent a new placement WITHIN A ROW</li>
+              <li>
+                Green spaces represent a new placement WITHIN A ROW SUBCONTAINER
+              </li>
+            </ul>
+          </div>
+        </div>
+        <DndProvider backend={HTML5Backend}>
+          <RowsContainerView rows={blocks} onDrop={onDrop} />
+          {`Last movement: ${movement}`}
+        </DndProvider>
+      </div>
     </div>
   );
 }
